@@ -75,6 +75,9 @@ This study empirically evaluates the structural-fairness hypothesis against a **
 
 ### Installation
 ```bash
+git clone https://github.com/ekawijanaardhian/cluster-predict-fairness.git
+cd cluster-predict-fairness
+
 python -m venv .venv
 # On Windows:
 .venv\Scripts\activate
