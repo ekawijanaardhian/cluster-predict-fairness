@@ -77,7 +77,7 @@ def generate_all_figures():
 
     ax.add_patch(patches.FancyBboxPatch((0.31, 0.17), 0.28, 0.66, boxstyle="round,pad=0.03", fc='#f0fdfa', ec=c_teal, lw=2.5))
     ax.text(0.45, 0.70, "Stage 1: Adaptive Clustering Engine", ha='center', va='center', fontweight='bold', color='#115e59', fontsize=11.5)
-    ax.text(0.45, 0.44, "• Multi-Objective Search: min (DB_Index + λ · Std(s_k))\n• Candidate Algorithms: KMeans, Auto, MiniBatch, GMM\n• Candidate Cluster Count: K ∈ [2, 10]\n• Isolates Distinct Demographic & Clinical Sub-Populations\n  (e.g., Low-Risk Affluent vs High-Risk Impoverished)", ha='center', va='center', fontsize=8.8, color='#0f766e')
+    ax.text(0.45, 0.44, "• Multi-Objective Criterion:\n  Composite(K) = DB(K) + 0.5 · Demog. SD(K)\n• Candidate Algorithms: KMeans, Auto, MiniBatch, GMM\n• Candidate Cluster Count: K ∈ [2, 10]\n• Isolates Distinct Demographic & Clinical Sub-Populations\n  (e.g., Low-Risk Affluent vs High-Risk Impoverished)", ha='center', va='center', fontsize=8.6, color='#0f766e')
 
     ax.annotate('', xy=(0.69, 0.50), xytext=(0.62, 0.50), arrowprops=dict(facecolor='black', edgecolor='black', arrowstyle='->', lw=2))
 
@@ -86,7 +86,7 @@ def generate_all_figures():
     ax.text(0.83, 0.44, "• Stratified Cross-Validation per Sub-Population\n• Dynamic Model Assignment:\n  - LightGBM / XGBoost (Non-linear complex)\n  - Random Forest (Ensemble)\n  - Logistic Regression (Parametric linear)\n• Autonomous Match to Local Data Geometry", ha='center', va='center', fontsize=8.8, color='#15803d')
 
     ax.add_patch(patches.Rectangle((0.01, 0.04), 0.98, 0.92, fill=False, edgecolor=c_purple, linestyle='--', linewidth=2.0))
-    ax.text(0.50, 0.08, "Global A* Heuristic Search Optimization: min f(n) = (1 - AUC) + λ · DPD + h(n)", ha='center', va='center', fontweight='bold', color='#581c87', fontsize=11.5)
+    ax.text(0.50, 0.08, "Global search objective: min f(n) = (1 - AUC) + λ · DPD + h(n)", ha='center', va='center', fontweight='bold', color='#581c87', fontsize=11.5)
 
     plt.tight_layout()
     save_multi_format(fig, "Fig1")
