@@ -17,7 +17,6 @@ from scipy import stats
 from src.pipeline import ClusterThenPredictPipeline
 from src.metrics import format_metrics_table
 
-# 8 Factorial configurations
 FACTORIAL_CONFIGS = [
     {"name": "1_Baseline_Blind", "pre": False, "in": False, "post": False},
     {"name": "2_Pre_Only",       "pre": True,  "in": False, "post": False},
@@ -81,7 +80,7 @@ class FactorialExperimentRunner:
         print("STARTING FULL FACTORIAL EXPERIMENT MATRIX (8 CONFIGURATIONS)")
         print("="*70)
         
-        # 1. Stratified Data Splitting
+
         X_temp, X_test, y_temp, y_test, s_temp, s_test = train_test_split(
             X, y, s, test_size=test_size, random_state=self.random_state, stratify=y
         )
@@ -207,7 +206,6 @@ class FactorialExperimentRunner:
         ])
         return interaction_summary
 
-
 class MultiSeedFactorialRunner:
     """
     Executes full 8-cell factorial matrix across N random seeds (>=10).
@@ -256,7 +254,6 @@ class MultiSeedFactorialRunner:
 
         df_all = pd.concat(self.raw_results_, ignore_index=True)
 
-        # Aggregate metrics across seeds
         summary_rows = []
         metrics_to_agg = ['AUC_ROC', 'Accuracy', 'Balanced_Accuracy', 'Demographic_Parity_Diff', 'Equalized_Odds_Diff']
 
@@ -277,18 +274,16 @@ class MultiSeedFactorialRunner:
 
         df_summary = pd.DataFrame(summary_rows)
 
-        # Compute Gamma Multi-seed statistics
         gamma_rows = []
         for seed in self.seeds:
             sub = df_all[df_all['Seed'] == seed].set_index('Configuration')
-            # Gamma DPD
+
             d_dp_pre = sub.loc['2_Pre_Only', 'Demographic_Parity_Diff'] - sub.loc['1_Baseline_Blind', 'Demographic_Parity_Diff']
             d_dp_in = sub.loc['3_In_Only', 'Demographic_Parity_Diff'] - sub.loc['1_Baseline_Blind', 'Demographic_Parity_Diff']
             d_dp_post = sub.loc['4_Post_Only', 'Demographic_Parity_Diff'] - sub.loc['1_Baseline_Blind', 'Demographic_Parity_Diff']
             d_dp_joint = sub.loc['8_Full_TriLayer', 'Demographic_Parity_Diff'] - sub.loc['1_Baseline_Blind', 'Demographic_Parity_Diff']
             gamma_dpd = d_dp_joint - (d_dp_pre + d_dp_in + d_dp_post)
 
-            # Gamma EOD
             d_eo_pre = sub.loc['2_Pre_Only', 'Equalized_Odds_Diff'] - sub.loc['1_Baseline_Blind', 'Equalized_Odds_Diff']
             d_eo_in = sub.loc['3_In_Only', 'Equalized_Odds_Diff'] - sub.loc['1_Baseline_Blind', 'Equalized_Odds_Diff']
             d_eo_post = sub.loc['4_Post_Only', 'Equalized_Odds_Diff'] - sub.loc['1_Baseline_Blind', 'Equalized_Odds_Diff']
@@ -300,7 +295,6 @@ class MultiSeedFactorialRunner:
         df_gamma = pd.DataFrame(gamma_rows)
         
         return df_all, df_summary, df_gamma
-
 
 class EpsilonSweepRunner:
     """

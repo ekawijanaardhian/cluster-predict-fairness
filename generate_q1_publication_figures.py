@@ -18,7 +18,6 @@ import seaborn as sns
 FIGURES_DIR = os.path.join("results", "figures")
 os.makedirs(FIGURES_DIR, exist_ok=True)
 
-# Publication styling
 plt.style.use('seaborn-v0_8-whitegrid' if 'seaborn-v0_8-whitegrid' in plt.style.available else 'default')
 plt.rcParams['font.family'] = 'sans-serif'
 plt.rcParams['font.sans-serif'] = ['DejaVu Sans', 'Arial', 'Helvetica']
@@ -29,9 +28,6 @@ plt.rcParams['xtick.labelsize'] = 9.5
 plt.rcParams['ytick.labelsize'] = 9.5
 plt.rcParams['legend.fontsize'] = 9.0
 
-# -----------------------------------------------------------------------------
-# FIGURE 1: FRAMEWORK ARCHITECTURE
-# -----------------------------------------------------------------------------
 def generate_figure1_architecture():
     """Figure 1: High-level Multi-Stage A* Guided Adaptive Cluster-then-Predict Architecture."""
     fig, ax = plt.subplots(figsize=(13.5, 5.2), dpi=300)
@@ -42,28 +38,22 @@ def generate_figure1_architecture():
     c_green = '#16a34a'
     c_purple = '#7c3aed'
 
-    # Level 0: Data
     ax.add_patch(patches.FancyBboxPatch((0.03, 0.22), 0.18, 0.56, boxstyle="round,pad=0.03", fc='#eff6ff', ec=c_blue, lw=2))
     ax.text(0.12, 0.65, "Input Clinical Data\nCDC BRFSS 2015", ha='center', va='center', fontweight='bold', color='#1e3a8a', fontsize=11)
     ax.text(0.12, 0.43, "N = 253,680 Samples\n• 21 Clinical Features\n• Target: Diabetes\n• Sensitive: Income/Edu", ha='center', va='center', fontsize=9.0, color='#1e40af')
 
-    # Arrow 1
     ax.annotate('', xy=(0.31, 0.50), xytext=(0.24, 0.50), arrowprops=dict(facecolor='black', edgecolor='black', arrowstyle='->', lw=2))
 
-    # Level 1: Stage 1 Clustering
     ax.add_patch(patches.FancyBboxPatch((0.31, 0.17), 0.28, 0.66, boxstyle="round,pad=0.03", fc='#f0fdfa', ec=c_teal, lw=2.5))
     ax.text(0.45, 0.70, "Stage 1: Adaptive Clustering Engine", ha='center', va='center', fontweight='bold', color='#115e59', fontsize=11.5)
     ax.text(0.45, 0.44, "• Multi-Objective Search: min (DB_Index + λ_fair * Std(s_k))\n• Candidate Algorithms: KMeans, Auto, MiniBatch, GMM\n• Candidate Cluster Count: K ∈ [2, 10]\n• Isolates Distinct Demographic & Clinical Sub-Populations\n  (e.g., Low-Risk Affluent vs High-Risk Impoverished)", ha='center', va='center', fontsize=8.8, color='#0f766e')
 
-    # Arrow 2
     ax.annotate('', xy=(0.69, 0.50), xytext=(0.62, 0.50), arrowprops=dict(facecolor='black', edgecolor='black', arrowstyle='->', lw=2))
 
-    # Level 2: Stage 2 Classifiers
     ax.add_patch(patches.FancyBboxPatch((0.69, 0.17), 0.28, 0.66, boxstyle="round,pad=0.03", fc='#f0fdf4', ec=c_green, lw=2.5))
     ax.text(0.83, 0.70, "Stage 2: Heterogeneous Classifier Engine", ha='center', va='center', fontweight='bold', color='#14532d', fontsize=11.5)
     ax.text(0.83, 0.44, "• Stratified Cross-Validation per Sub-Population\n• Dynamic Model Assignment:\n  - LightGBM / XGBoost (Non-linear complex)\n  - Random Forest (Ensemble)\n  - Logistic Regression (Parametric linear)\n• Autonomous Match to Local Data Geometry", ha='center', va='center', fontsize=8.8, color='#15803d')
 
-    # A* Super-structure box
     ax.add_patch(patches.Rectangle((0.01, 0.04), 0.98, 0.92, fill=False, edgecolor=c_purple, linestyle='--', linewidth=2.0))
     ax.text(0.50, 0.08, "Global A* Heuristic Search Optimization: min f(n) = (1 - AUC) + λ_fairness * DPD + h(n)", ha='center', va='center', fontweight='bold', color='#581c87', fontsize=11.5)
 
@@ -73,9 +63,6 @@ def generate_figure1_architecture():
     plt.close()
     print(f"[Figure 1] Saved: {out_path}")
 
-# -----------------------------------------------------------------------------
-# FIGURE 2: SEARCH EFFICIENCY BENCHMARK (A* VS BRUTE-FORCE)
-# -----------------------------------------------------------------------------
 def generate_figure2_astar_efficiency():
     """Figure 2: A* vs Brute Force Search Efficiency & Scalability Comparison (3 Panels)."""
     eval_18 = [3, 18]
@@ -91,7 +78,6 @@ def generate_figure2_astar_efficiency():
     width = 0.35
     c_astar, c_bf = '#10b981', '#f87171'
 
-    # Panel (a): Evaluated Pipeline Nodes
     rects1 = ax1.bar(x - width/2, [eval_18[0], eval_105[0]], width, label='A* Search (Informed)', color=c_astar, edgecolor='black')
     rects2 = ax1.bar(x + width/2, [eval_18[1], eval_105[1]], width, label='Brute-Force (Grid)', color=c_bf, edgecolor='black')
     ax1.set_ylabel("Evaluated Pipeline Configurations", fontweight='bold')
@@ -104,7 +90,6 @@ def generate_figure2_astar_efficiency():
     ax1.grid(axis='y', linestyle='--', alpha=0.5)
     ax1.legend(loc='upper left', frameon=True, fontsize=8.5)
 
-    # Panel (b): Execution Time (Seconds)
     rects3 = ax2.bar(x - width/2, [time_18[0], time_105[0]], width, label='A* Search', color=c_astar, edgecolor='black')
     rects4 = ax2.bar(x + width/2, [time_18[1], time_105[1]], width, label='Brute-Force', color=c_bf, edgecolor='black')
     ax2.set_ylabel("Execution Time (Seconds)", fontweight='bold')
@@ -117,7 +102,6 @@ def generate_figure2_astar_efficiency():
     ax2.grid(axis='y', linestyle='--', alpha=0.5)
     ax2.legend(loc='upper left', frameon=True, fontsize=8.5)
 
-    # Panel (c): Objective Cost f(n) Fidelity
     rects5 = ax3.bar(x - width/2, [cost_18[0], cost_105[0]], width, label='A* Search', color=c_astar, edgecolor='black')
     rects6 = ax3.bar(x + width/2, [cost_18[1], cost_105[1]], width, label='Brute-Force (Optimal)', color='#3b82f6', edgecolor='black')
     ax3.set_ylabel("Optimization Cost f(n) [Lower is Better]", fontweight='bold')
@@ -136,9 +120,6 @@ def generate_figure2_astar_efficiency():
     plt.close()
     print(f"[Figure 2] Saved: {out_path}")
 
-# -----------------------------------------------------------------------------
-# FIGURE 3: STAGE 1 CLUSTER OPTIMIZATION CURVE (K in [2, 10])
-# -----------------------------------------------------------------------------
 def generate_figure3_cluster_optimization():
     """Figure 3: Stage 1 Sub-Population Cluster Selection Curve across K in [2, 10]."""
     csv_path = os.path.join("results", "cluster_selection_metrics.csv")
@@ -154,7 +135,6 @@ def generate_figure3_cluster_optimization():
     ch_scores = df['Calinski_Harabasz'].values
     comp_scores = df['Composite_Score'].values
 
-    # Left: Davies-Bouldin and Composite Score
     ax1.plot(ks, db_scores, marker='o', lw=2.2, color='#2563eb', label='Davies-Bouldin Index (Lower is Better)')
     ax1.plot(ks, comp_scores, marker='s', lw=2.2, color='#dc2626', linestyle='--', label='Composite Cost Score f(n)')
     ax1.scatter([2], [comp_scores[0]], s=220, color='#16a34a', zorder=6, edgecolors='black', label='Optimal Cluster (K=2)')
@@ -165,7 +145,6 @@ def generate_figure3_cluster_optimization():
     ax1.grid(True, linestyle='--', alpha=0.5)
     ax1.legend(loc='lower right', frameon=True)
 
-    # Right: Calinski-Harabasz Score
     ax2.plot(ks, ch_scores, marker='^', lw=2.2, color='#0d9488', label='Calinski-Harabasz Index (Higher is Better)')
     ax2.scatter([2], [ch_scores[0]], s=220, color='#16a34a', zorder=6, edgecolors='black', label='Optimal Peak (K=2)')
     ax2.set_xlabel("Candidate Number of Sub-Populations (K)", fontweight='bold')
@@ -181,9 +160,6 @@ def generate_figure3_cluster_optimization():
     plt.close()
     print(f"[Figure 3] Saved: {out_path}")
 
-# -----------------------------------------------------------------------------
-# FIGURE 4: EMPIRICAL PARETO FRONTIER & TRADE-OFF
-# -----------------------------------------------------------------------------
 def generate_figure4_pareto():
     """Figure 4: Empirical Pareto Frontier (Clinical Utility vs Demographic Parity Difference)."""
     fig, ax = plt.subplots(figsize=(8.8, 5.6), dpi=300)
@@ -212,7 +188,6 @@ def generate_figure4_pareto():
     for name, auc, dpd, color, marker, size in configs:
         ax.scatter(dpd, auc, color=color, marker=marker, s=size, label=name, edgecolors='black', linewidth=1.2, zorder=5)
 
-    # Highlight optimal Pareto point
     opt_dpd, opt_auc = 0.0324, 0.7022
     ax.scatter(opt_dpd, opt_auc, s=400, facecolors='none', edgecolors='#ef4444', linewidth=2.5, zorder=6, linestyle='--')
     ax.annotate("A* Global Optimal\n(K=2 LightGBM, DPD=0.0324, AUC=0.7022)\n89.2% Disparity Reduction",
@@ -221,7 +196,6 @@ def generate_figure4_pareto():
                 fontsize=9.0, fontweight='bold', color='#b91c1c',
                 bbox=dict(boxstyle="round,pad=0.3", fc="#fef2f2", ec="#ef4444", lw=1))
 
-    # Single model high disparity annotation
     ax.annotate("Single-Model Baselines (K=1)\nSevere Demographic Disparity (DPD ~ 0.30)",
                 xy=(0.2993, 0.8263), xytext=(0.12, 0.820),
                 arrowprops=dict(arrowstyle="->", color='#475569', lw=1.5),
@@ -241,9 +215,6 @@ def generate_figure4_pareto():
     plt.close()
     print(f"[Figure 4] Saved: {out_path}")
 
-# -----------------------------------------------------------------------------
-# FIGURE 5: LAMBDA SWEEP PERFORMANCE HEATMAP
-# -----------------------------------------------------------------------------
 def generate_figure5_interaction_heatmap():
     """Figure 5: Lambda Sweep Performance Heatmap (Dynamically loaded from CSV)."""
     csv_path = os.path.join("results", "q1_lambda_sweep.csv")
@@ -282,9 +253,6 @@ def generate_figure5_interaction_heatmap():
     plt.close()
     print(f"[Figure 5] Saved: {out_path}")
 
-# -----------------------------------------------------------------------------
-# FIGURE 6: MULTI-SEED STATISTICAL STABILITY BOXPLOTS
-# -----------------------------------------------------------------------------
 def generate_figure6_multiseed_boxplots():
     """Figure 6: Multi-seed stability across 5 random seeds (Dynamically loaded from CSV)."""
     csv_path = os.path.join("results", "q1_multiseed_stability.csv")
@@ -297,7 +265,6 @@ def generate_figure6_multiseed_boxplots():
         astar_auc = np.array([0.7022, 0.7018, 0.7005, 0.6988, 0.7049])
         astar_dpd = np.array([0.0324, 0.0233, 0.0088, 0.0141, 0.0002])
 
-    # Single-model baseline evaluations across the 5 splits
     single_log_auc = [0.8197, 0.8192, 0.8201, 0.8195, 0.8199]
     single_lgb_auc = [0.8263, 0.8260, 0.8268, 0.8259, 0.8265]
 
@@ -333,9 +300,6 @@ def generate_figure6_multiseed_boxplots():
     plt.close()
     print(f"[Figure 6] Saved: {out_path}")
 
-# -----------------------------------------------------------------------------
-# MAIN DRIVER
-# -----------------------------------------------------------------------------
 def main():
     print("=" * 80)
     print("GENERATING CLEAN PUBLICATION FIGURES 1 TO 6 WITHOUT EMBEDDED TITLES (300 DPI)")

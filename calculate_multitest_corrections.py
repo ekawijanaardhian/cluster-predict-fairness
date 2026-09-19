@@ -1,7 +1,6 @@
 import pandas as pd
 import numpy as np
 
-# Load bootstrap inference data
 df_boot = pd.read_csv('results/statistical_bootstrap_inference.csv')
 deltas = df_boot[df_boot['Architecture'].str.startswith('Delta_')].copy()
 
@@ -21,12 +20,10 @@ for idx, row in deltas.iterrows():
 
 df_res = pd.DataFrame(records)
 
-# Compute Holm and Benjamini-Hochberg corrections
 m = len(df_res)
-# Rank by raw p-value
+
 df_res = df_res.sort_values(by='Raw_P_Value').reset_index(drop=True)
 
-# Holm-Bonferroni: p_adj_i = min(1.0, max_{k<=i} (m - k + 1) * p_k)
 holm_p = []
 curr_max = 0.0
 for i, p in enumerate(df_res['Raw_P_Value']):
@@ -35,7 +32,6 @@ for i, p in enumerate(df_res['Raw_P_Value']):
     holm_p.append(min(1.0, curr_max))
 df_res['Holm_P_Value'] = holm_p
 
-# Benjamini-Hochberg FDR: p_adj_i = min_{k>=i} (m / k) * p_k
 bh_p = [0.0] * m
 curr_min = 1.0
 for i in range(m - 1, -1, -1):
@@ -54,7 +50,6 @@ print("MULTIPLE TESTING CORRECTIONS (BOOTSTRAP P-VALUES, M=12 COMPARISONS):")
 print("=" * 100)
 print(df_res.to_string(index=False))
 
-# Also DeLong tests
 df_delong = pd.read_csv('results/delong_auc_hypothesis_tests.csv')
 print("\n" + "=" * 100)
 print("DELONG AUC TESTS (M=5 COMPARISONS):")

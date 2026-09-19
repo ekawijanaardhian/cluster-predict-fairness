@@ -25,10 +25,9 @@ def main():
     print("Dataset: CDC BRFSS 2015 (N = 253,680)")
     print("=" * 80)
 
-    # 1. Load Data
     X, y, s = load_data(file_path=None, n_samples=None, random_state=42, protected_attr='Income_Binary')
     
-    # Stratified Splits (70% Train, 10% Val, 20% Held-out Test)
+
     X_temp, X_test, y_temp, y_test, s_temp, s_test = train_test_split(
         X, y, s, test_size=0.20, random_state=42, stratify=y
     )
@@ -38,9 +37,6 @@ def main():
 
     records = []
 
-    # -------------------------------------------------------------------------
-    # 1. A* Heuristic Search (Informed Search)
-    # -------------------------------------------------------------------------
     print("\n" + "#" * 80)
     print("[1/2] RUNNING A* HEURISTIC SEARCH (INFORMED SEARCH)")
     print("#" * 80)
@@ -92,9 +88,6 @@ def main():
         'Test_EOD': round(m_astar['Equalized_Odds_Diff'], 4)
     })
 
-    # -------------------------------------------------------------------------
-    # 2. Brute-Force Exhaustive Search (Unguided Combinatorial Grid)
-    # -------------------------------------------------------------------------
     print("\n" + "#" * 80)
     print("[2/2] RUNNING BRUTE-FORCE EXHAUSTIVE GRID SEARCH (18 COMBINATIONS)")
     print("#" * 80)

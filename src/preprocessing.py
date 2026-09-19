@@ -35,19 +35,16 @@ class DataPreprocessor:
         y_arr = np.asarray(y).astype(int)
         n = len(s_arr)
 
-        # Marginal probabilities
         p_s0 = np.mean(s_arr == 0)
         p_s1 = np.mean(s_arr == 1)
         p_y0 = np.mean(y_arr == 0)
         p_y1 = np.mean(y_arr == 1)
 
-        # Joint probabilities
         p_s0_y0 = np.mean((s_arr == 0) & (y_arr == 0)) + 1e-9
         p_s0_y1 = np.mean((s_arr == 0) & (y_arr == 1)) + 1e-9
         p_s1_y0 = np.mean((s_arr == 1) & (y_arr == 0)) + 1e-9
         p_s1_y1 = np.mean((s_arr == 1) & (y_arr == 1)) + 1e-9
 
-        # Weight calculation
         w_s0_y0 = (p_s0 * p_y0) / p_s0_y0
         w_s0_y1 = (p_s0 * p_y1) / p_s0_y1
         w_s1_y0 = (p_s1 * p_y0) / p_s1_y0
@@ -60,7 +57,6 @@ class DataPreprocessor:
             (1, 1): w_s1_y1
         }
 
-        # Assign weights
         weights = np.ones(n, dtype=np.float64)
         for s_val in (0, 1):
             for y_val in (0, 1):

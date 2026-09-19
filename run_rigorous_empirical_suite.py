@@ -32,9 +32,6 @@ from src.astar_search import AStarFairnessPipelineSearcher, BruteForceExhaustive
 RESULTS_DIR = "results"
 os.makedirs(RESULTS_DIR, exist_ok=True)
 
-# -----------------------------------------------------------------------------
-# HELPER: Expected Calibration Error (ECE)
-# -----------------------------------------------------------------------------
 def compute_ece(y_true: np.ndarray, y_prob: np.ndarray, n_bins: int = 10) -> float:
     """Computes Expected Calibration Error (ECE)."""
     y_t = np.asarray(y_true).astype(int)
@@ -54,9 +51,6 @@ def compute_ece(y_true: np.ndarray, y_prob: np.ndarray, n_bins: int = 10) -> flo
             
     return float(ece)
 
-# -----------------------------------------------------------------------------
-# 1. MITIGATION BASELINES ON SAME SPLIT (§3.7 & §3.10)
-# -----------------------------------------------------------------------------
 def run_experiment_1_mitigation_baselines(X_train, y_train, s_train, X_val, y_val, s_val, X_test, y_test, s_test):
     print("\n" + "=" * 80)
     print(">>> EXPERIMENT 1: STANDARD MITIGATION BASELINES ON SAME SPLIT (§3.7 & §3.10)")
@@ -64,7 +58,7 @@ def run_experiment_1_mitigation_baselines(X_train, y_train, s_train, X_val, y_va
     
     results = []
     
-    # Common preprocessor
+
     prep = DataPreprocessor(scale_features=True)
     X_tr_p = prep.fit_transform(X_train)
     X_va_p = prep.transform(X_val)
@@ -73,7 +67,7 @@ def run_experiment_1_mitigation_baselines(X_train, y_train, s_train, X_val, y_va
     y_tr_arr, y_va_arr, y_te_arr = np.asarray(y_train), np.asarray(y_val), np.asarray(y_test)
     s_tr_arr, s_va_arr, s_te_arr = np.asarray(s_train), np.asarray(s_val), np.asarray(s_test)
     
-    # 1. Unmitigated Single LightGBM
+
     print("1/7 Fitting Unmitigated Single LightGBM...")
     t0 = time.time()
     m_single = get_base_estimator('lightgbm', random_state=42)
@@ -98,7 +92,7 @@ def run_experiment_1_mitigation_baselines(X_train, y_train, s_train, X_val, y_va
         'Fit_Time_Sec': round(t_single, 2), 'Requires_Attribute_At_Inference': False
     })
     
-    # 2. Pre-processing: Re-weighing
+
     print("2/7 Fitting Pre-processing Re-weighing (Kamiran & Calders)...")
     t0 = time.time()
     weights_tr = prep.compute_reweighing_weights(s_train, y_train)
@@ -123,7 +117,7 @@ def run_experiment_1_mitigation_baselines(X_train, y_train, s_train, X_val, y_va
         'Fit_Time_Sec': round(t_reweigh, 2), 'Requires_Attribute_At_Inference': False
     })
     
-    # 3. In-processing: Exponentiated Gradient (Demographic Parity)
+
     print("3/7 Fitting In-Processing Exponentiated Gradient (Demographic Parity constraint)...")
     t0 = time.time()
     base_dp = get_base_estimator('lightgbm', random_state=42)
@@ -148,7 +142,7 @@ def run_experiment_1_mitigation_baselines(X_train, y_train, s_train, X_val, y_va
         'Fit_Time_Sec': round(t_in_dp, 2), 'Requires_Attribute_At_Inference': False
     })
     
-    # 4. In-processing: Exponentiated Gradient (Equalized Odds)
+
     print("4/7 Fitting In-Processing Exponentiated Gradient (Equalized Odds constraint)...")
     t0 = time.time()
     base_eo = get_base_estimator('lightgbm', random_state=42)
@@ -173,7 +167,7 @@ def run_experiment_1_mitigation_baselines(X_train, y_train, s_train, X_val, y_va
         'Fit_Time_Sec': round(t_in_eo, 2), 'Requires_Attribute_At_Inference': False
     })
     
-    # 5. Post-processing: Threshold Optimizer (Fairlearn / Hardt et al.)
+
     print("5/7 Fitting Post-Processing Threshold Optimizer (Equalized Odds target, BalAcc)...")
     t0 = time.time()
     post_opt = ThresholdOptimizer(
@@ -188,7 +182,7 @@ def run_experiment_1_mitigation_baselines(X_train, y_train, s_train, X_val, y_va
     pred_post_te = post_opt.predict(X_te_p, sensitive_features=s_te_arr)
     m5 = compute_all_metrics(y_te_arr, pred_post_te, p_single_te, s_te_arr)
     
-    # Net Benefit strictly from post-processed discrete decision policy
+
     n_te_pts = len(y_te_arr)
     tp5 = np.sum((pred_post_te == 1) & (y_te_arr == 1))
     fp5 = np.sum((pred_post_te == 1) & (y_te_arr == 0))
@@ -204,7 +198,7 @@ def run_experiment_1_mitigation_baselines(X_train, y_train, s_train, X_val, y_va
         'Fit_Time_Sec': round(t_post, 2), 'Requires_Attribute_At_Inference': True
     })
     
-    # 6. v1 Hard Cluster-then-Predict (K=2)
+
     print("6/7 Fitting v1 Hard Cluster-then-Predict (K=2)...")
     t0 = time.time()
     pipe_v1 = ClusterThenPredictPipeline(
@@ -229,7 +223,7 @@ def run_experiment_1_mitigation_baselines(X_train, y_train, s_train, X_val, y_va
         'Fit_Time_Sec': round(t_v1, 2), 'Requires_Attribute_At_Inference': False
     })
     
-    # 7. v2 Hierarchical MoE (K=2)
+
     print("7/7 Fitting v2 Hierarchical Fair MoE (K=2, Calibrated)...")
     t0 = time.time()
     pipe_v2 = ClusterThenPredictPipeline(
@@ -262,9 +256,6 @@ def run_experiment_1_mitigation_baselines(X_train, y_train, s_train, X_val, y_va
     
     return df_res1, (p_single_te, p_v1_te, p_v2_te)
 
-# -----------------------------------------------------------------------------
-# 2. CLUSTER DIAGNOSTICS FOR v1 (K=2 & K=4)
-# -----------------------------------------------------------------------------
 def run_experiment_2_cluster_diagnostics(X_train, y_train, s_train, X_test, y_test, s_test):
     print("\n" + "=" * 80)
     print(">>> EXPERIMENT 2: CLUSTER DIAGNOSTICS FOR v1 ARCHITECTURES (K=2 & K=4)")
@@ -277,7 +268,7 @@ def run_experiment_2_cluster_diagnostics(X_train, y_train, s_train, X_test, y_te
     y_tr_arr, y_te_arr = np.asarray(y_train), np.asarray(y_test)
     s_tr_arr, s_te_arr = np.asarray(s_train), np.asarray(s_test)
     
-    # Low education indicator (Education <= 3 is high school or less)
+
     edu_tr = (X_train['Education'] <= 3).astype(int) if 'Education' in X_train.columns else np.zeros(len(X_train))
     edu_te = (X_test['Education'] <= 3).astype(int) if 'Education' in X_test.columns else np.zeros(len(X_test))
     
@@ -288,7 +279,7 @@ def run_experiment_2_cluster_diagnostics(X_train, y_train, s_train, X_test, y_te
         c_tr = km.fit_predict(X_tr_p)
         c_te = km.predict(X_te_p)
         
-        # Train v1 independent cluster models
+
         for c_id in range(k_val):
             mask_tr = (c_tr == c_id)
             mask_te = (c_te == c_id)
@@ -297,11 +288,11 @@ def run_experiment_2_cluster_diagnostics(X_train, y_train, s_train, X_test, y_te
             n_te = int(np.sum(mask_te))
             prev_tr = float(np.mean(y_tr_arr[mask_tr])) if n_tr > 0 else 0.0
             
-            # Socioeconomic skew
+
             pct_low_inc = float(np.mean(s_tr_arr[mask_tr] == 0) * 100) if n_tr > 0 else 0.0
             pct_low_edu = float(np.mean(edu_tr[mask_tr] == 1) * 100) if n_tr > 0 else 0.0
             
-            # Train local model on cluster partition
+
             auc_k = 0.5
             brier_k = 0.0
             if n_tr > 30 and len(np.unique(y_tr_arr[mask_tr])) > 1:
@@ -332,9 +323,6 @@ def run_experiment_2_cluster_diagnostics(X_train, y_train, s_train, X_test, y_te
     print(df_diag.to_string(index=False))
     return df_diag
 
-# -----------------------------------------------------------------------------
-# 3. STATISTICAL INFERENCE VIA 1,000 PAIRED BOOTSTRAP RESAMPLES
-# -----------------------------------------------------------------------------
 def run_experiment_3_bootstrap_inference(y_test, s_test, pred_dict, proba_dict, n_bootstraps=1000, random_state=42):
     print("\n" + "=" * 80)
     print(f">>> EXPERIMENT 3: STATISTICAL INFERENCE VIA {n_bootstraps} PAIRED BOOTSTRAP RESAMPLES")
@@ -347,7 +335,7 @@ def run_experiment_3_bootstrap_inference(y_test, s_test, pred_dict, proba_dict, 
     
     architectures = list(proba_dict.keys())
     
-    # Store bootstrap metric samples
+
     boot_records = {arch: {'AUC': [], 'DPD': [], 'EOD': [], 'NetBenefit_pt10': []} for arch in architectures}
     
     print(f"Resampling test set (N={n_samples}) across {n_bootstraps} iterations...")
@@ -362,18 +350,18 @@ def run_experiment_3_bootstrap_inference(y_test, s_test, pred_dict, proba_dict, 
             p_b = proba_dict[arch][idx]
             pred_b = pred_dict[arch][idx]
             
-            # Fast metric computation
+
             try:
                 auc_b = roc_auc_score(y_b, p_b)
             except Exception:
                 auc_b = 0.5
                 
-            # DPD
+
             p_s1 = np.mean(pred_b[s_b == 1]) if np.sum(s_b == 1) > 0 else 0.0
             p_s0 = np.mean(pred_b[s_b == 0]) if np.sum(s_b == 0) > 0 else 0.0
             dpd_b = abs(p_s1 - p_s0)
             
-            # EOD (FPR diff and TPR diff)
+
             mask_s1 = (s_b == 1)
             mask_s0 = (s_b == 0)
             fpr_s1 = np.mean(pred_b[(mask_s1) & (y_b == 0)] == 1) if np.sum((mask_s1) & (y_b == 0)) > 0 else 0.0
@@ -382,7 +370,7 @@ def run_experiment_3_bootstrap_inference(y_test, s_test, pred_dict, proba_dict, 
             tpr_s0 = np.mean(pred_b[(mask_s0) & (y_b == 1)] == 1) if np.sum((mask_s0) & (y_b == 1)) > 0 else 0.0
             eod_b = max(abs(fpr_s1 - fpr_s0), abs(tpr_s1 - tpr_s0))
             
-            # Net Benefit at pt = 0.10
+
             weight = 0.10 / 0.90
             tp_b = np.sum((pred_b == 1) & (y_b == 1))
             fp_b = np.sum((pred_b == 1) & (y_b == 0))
@@ -395,7 +383,7 @@ def run_experiment_3_bootstrap_inference(y_test, s_test, pred_dict, proba_dict, 
             
     print(f"Bootstrap completed in {time.time() - t0:.2f} seconds.")
     
-    # 1. Point Estimates & 95% CI
+
     summary_rows = []
     for arch in architectures:
         for metric in ['AUC', 'DPD', 'EOD', 'NetBenefit_pt10']:
@@ -412,7 +400,7 @@ def run_experiment_3_bootstrap_inference(y_test, s_test, pred_dict, proba_dict, 
                 'Formatted_95CI': f"{pe:.4f} [{ci_low:.4f}, {ci_high:.4f}]"
             })
             
-    # 2. Paired Differences (v2 vs Single LightGBM; v1 vs Single LightGBM; v2 vs v1)
+
     diff_pairs = [
         ("v2_Hierarchical_MoE", "Single_LightGBM", "Delta_(v2_minus_SingleLightGBM)"),
         ("v1_Hard_Cluster", "Single_LightGBM", "Delta_(v1_minus_SingleLightGBM)"),
@@ -426,7 +414,7 @@ def run_experiment_3_bootstrap_inference(y_test, s_test, pred_dict, proba_dict, 
                 pe = float(np.mean(diff_vals))
                 ci_low = float(np.percentile(diff_vals, 2.5))
                 ci_high = float(np.percentile(diff_vals, 97.5))
-                p_val = float(np.mean(diff_vals <= 0) if pe > 0 else np.mean(diff_vals >= 0)) * 2 # 2-tailed empirical p-value
+                p_val = float(np.mean(diff_vals <= 0) if pe > 0 else np.mean(diff_vals >= 0)) * 2
                 summary_rows.append({
                     'Architecture': diff_name,
                     'Metric': metric,
@@ -443,9 +431,6 @@ def run_experiment_3_bootstrap_inference(y_test, s_test, pred_dict, proba_dict, 
     print(df_boot.to_string(index=False))
     return df_boot
 
-# -----------------------------------------------------------------------------
-# 4. STRATIFIED SUBGROUP CALIBRATION (Brier & ECE for Privileged vs Unprivileged)
-# -----------------------------------------------------------------------------
 def run_experiment_4_subgroup_calibration(y_test, s_test, proba_dict):
     print("\n" + "=" * 80)
     print(">>> EXPERIMENT 4: STRATIFIED SUBGROUP CALIBRATION (Brier Score & ECE)")
@@ -457,16 +442,16 @@ def run_experiment_4_subgroup_calibration(y_test, s_test, proba_dict):
     records = []
     
     for arch, p in proba_dict.items():
-        # Overall
+
         brier_all = brier_score_loss(y_t, p)
         ece_all = compute_ece(y_t, p)
         
-        # Privileged (S=1)
+
         mask_s1 = (s_arr == 1)
         brier_s1 = brier_score_loss(y_t[mask_s1], p[mask_s1]) if np.sum(mask_s1) > 0 else 0.0
         ece_s1 = compute_ece(y_t[mask_s1], p[mask_s1]) if np.sum(mask_s1) > 0 else 0.0
         
-        # Unprivileged (S=0)
+
         mask_s0 = (s_arr == 0)
         brier_s0 = brier_score_loss(y_t[mask_s0], p[mask_s0]) if np.sum(mask_s0) > 0 else 0.0
         ece_s0 = compute_ece(y_t[mask_s0], p[mask_s0]) if np.sum(mask_s0) > 0 else 0.0
@@ -490,9 +475,6 @@ def run_experiment_4_subgroup_calibration(y_test, s_test, proba_dict):
     print(df_calib.to_string(index=False))
     return df_calib
 
-# -----------------------------------------------------------------------------
-# 5. FULL DECISION CURVE ANALYSIS (DCA) ACROSS pt IN [0.01, 0.30] (step 0.01)
-# -----------------------------------------------------------------------------
 def run_experiment_5_full_decision_curves(y_test, proba_dict):
     print("\n" + "=" * 80)
     print(">>> EXPERIMENT 5: FULL DECISION CURVE ANALYSIS (pt in [0.01, 0.30], step 0.01)")
@@ -507,7 +489,7 @@ def run_experiment_5_full_decision_curves(y_test, proba_dict):
     for pt in thresholds:
         weight = pt / (1.0 - pt)
         
-        # Reference strategies
+
         tp_all = np.sum(y_t == 1)
         fp_all = np.sum(y_t == 0)
         nb_all = (tp_all / n) - (fp_all / n) * weight
@@ -535,15 +517,12 @@ def run_experiment_5_full_decision_curves(y_test, proba_dict):
     print(df_dca_full[['Threshold_pt', 'Treat_All', 'Treat_None', 'Net_Benefit_Single_LightGBM', 'Net_Benefit_v1_Hard_Cluster', 'Net_Benefit_v2_Hierarchical_MoE']].head(10).to_string(index=False))
     return df_dca_full
 
-# -----------------------------------------------------------------------------
-# 6. OPTIONAL: SCALED A* VS BRUTE-FORCE (105 Pipeline Configurations)
-# -----------------------------------------------------------------------------
 def run_experiment_6_scaled_astar_search(X_train, y_train, s_train, X_val, y_val, s_val):
     print("\n" + "=" * 80)
     print(">>> EXPERIMENT 6: SCALED HIGH-DIMENSIONAL SEARCH (105 PIPELINES)")
     print("=" * 80)
     
-    # 7 K values * 3 clustering * 5 classifiers = 105 candidate configurations
+
     cand_k = [2, 3, 4, 5, 6, 8, 10]
     cand_methods = ['kmeans', 'minibatch', 'gmm']
     cand_classifiers = ['lightgbm', 'xgboost', 'rf', 'logistic', 'adaptive']
@@ -551,7 +530,7 @@ def run_experiment_6_scaled_astar_search(X_train, y_train, s_train, X_val, y_val
     total_space = len(cand_k) * len(cand_methods) * len(cand_classifiers)
     print(f"Total Structural Architecture Search Space: {total_space} full pipeline combinations.")
     
-    # 1. Scaled A* Search
+
     print("\n--- Running Scaled A* Heuristic Search Engine ---")
     t0 = time.time()
     astar = AStarFairnessPipelineSearcher(
@@ -569,7 +548,7 @@ def run_experiment_6_scaled_astar_search(X_train, y_train, s_train, X_val, y_val
     
     print(f"A* Search finished in {time_astar:.2f}s | Evaluated: {len(traj_df_astar)} nodes | Optimal Cost: {best_node_astar.f_cost:.4f}")
     
-    # Summary Table
+
     df_search_summary = pd.DataFrame([{
         'Search_Strategy': 'Informed_A_Star_Search',
         'Total_Design_Space': total_space,
@@ -590,18 +569,15 @@ def run_experiment_6_scaled_astar_search(X_train, y_train, s_train, X_val, y_val
     print(df_search_summary.to_string(index=False))
     return df_search_summary
 
-# -----------------------------------------------------------------------------
-# MASTER EXECUTION FUNCTION
-# -----------------------------------------------------------------------------
 def main():
     print("=" * 80)
     print("MASTER EXECUTION: COMPLETE RIGOROUS EXPERIMENTAL SUITE FOR Q1 ELSEVIER")
     print("=" * 80)
     
-    # 1. Load Dataset
+
     X, y, s = load_data(file_path=None, n_samples=None, random_state=42, protected_attr='Income_Binary')
     
-    # 2. Standardized Splitting (Train: 68%, Val: 12%, Test: 20%)
+
     X_temp, X_test, y_temp, y_test, s_temp, s_test = train_test_split(
         X, y, s, test_size=0.20, random_state=42, stratify=y
     )
@@ -611,15 +587,15 @@ def main():
     
     print(f"Dataset split sizes: Train={len(X_train)} | Val={len(X_val)} | Test={len(X_test)}")
     
-    # Experiment 1: Mitigation Baselines on Same Split
+
     df_exp1, (p_single, p_v1, p_v2) = run_experiment_1_mitigation_baselines(
         X_train, y_train, s_train, X_val, y_val, s_val, X_test, y_test, s_test
     )
     
-    # Extract prediction probability dictionaries for experiments 3, 4, 5
+
     roc = RejectOptionClassifier()
     
-    # Train In-Processing DP for bootstrap comparison
+
     prep = DataPreprocessor(scale_features=True)
     X_tr_p = prep.fit_transform(X_train)
     X_va_p = prep.transform(X_val)
@@ -636,33 +612,33 @@ def main():
         'v2_Hierarchical_MoE': p_v2[:, 1] if p_v2.ndim > 1 else p_v2
     }
     
-    # Binary predictions using Youden's threshold on test proba
+
     pred_dict = {}
     for arch, p_arr in proba_dict.items():
         t_cal = roc.calibrate_threshold(np.asarray(y_test), p_arr)
         pred_dict[arch] = (p_arr >= t_cal).astype(int)
         
-    # Experiment 2: Cluster Diagnostics for v1
+
     df_exp2 = run_experiment_2_cluster_diagnostics(
         X_train, y_train, s_train, X_test, y_test, s_test
     )
     
-    # Experiment 3: Bootstrap Statistical Inference (1,000 resamples)
+
     df_exp3 = run_experiment_3_bootstrap_inference(
         y_test, s_test, pred_dict, proba_dict, n_bootstraps=1000, random_state=42
     )
     
-    # Experiment 4: Subgroup Calibration (Brier & ECE)
+
     df_exp4 = run_experiment_4_subgroup_calibration(
         y_test, s_test, proba_dict
     )
     
-    # Experiment 5: Full Decision Curves (pt in [0.01, 0.30])
+
     df_exp5 = run_experiment_5_full_decision_curves(
         y_test, proba_dict
     )
     
-    # Experiment 6: Scaled High-Dimensional A* Search (105 Pipelines)
+
     df_exp6 = run_experiment_6_scaled_astar_search(
         X_train, y_train, s_train, X_val, y_val, s_val
     )

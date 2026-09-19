@@ -28,7 +28,6 @@ def main():
     print("SCALED BENCHMARK: A* HEURISTIC SEARCH VS. BRUTE-FORCE EXHAUSTIVE ENUMERATION")
     print("=" * 80)
 
-    # 1. Load BRFSS 2015 Dataset
     X, y, s = load_data(file_path=None, n_samples=None, random_state=42, protected_attr='Income_Binary')
     
     X_temp, X_test, y_temp, y_test, s_temp, s_test = train_test_split(
@@ -38,7 +37,6 @@ def main():
         X_temp, y_temp, s_temp, test_size=0.15/0.80, random_state=42, stratify=y_temp
     )
 
-    # Candidate Design Space
     cand_k = [2, 3, 4, 5, 6, 8, 10]
     cand_methods = ['kmeans', 'minibatch', 'gmm']
     cand_classifiers = ['lightgbm', 'xgboost', 'rf', 'logistic', 'adaptive']
@@ -52,9 +50,6 @@ def main():
 
     benchmark_records = []
 
-    # -------------------------------------------------------------------------
-    # 1. A* Heuristic Search
-    # -------------------------------------------------------------------------
     print("\n--- [1/2] Running Scaled A* Heuristic Search Engine ---")
     t0 = time.time()
     astar = AStarFairnessPipelineSearcher(
@@ -70,7 +65,6 @@ def main():
     best_node_astar, traj_df_astar = astar.search(X_train, y_train, s_train, X_val, y_val, s_val)
     time_astar = time.time() - t0
 
-    # Test evaluation for A*
     opt_cfg_astar = best_node_astar.config
     pipe_astar = ClusterThenPredictPipeline(
         name="AStar_Optimal",
@@ -113,9 +107,6 @@ def main():
         'Test_EOD': m_te_astar['Equalized_Odds_Diff']
     })
 
-    # -------------------------------------------------------------------------
-    # 2. Brute-Force Exhaustive Enumeration
-    # -------------------------------------------------------------------------
     print("\n--- [2/2] Running Brute-Force Exhaustive Grid Search across all 105 combinations ---")
     t0 = time.time()
     bf_searcher = BruteForceExhaustiveSearcher(
@@ -132,7 +123,6 @@ def main():
     best_node_bf, traj_df_bf = bf_searcher.search(X_train, y_train, s_train, X_val, y_val, s_val)
     time_bf = time.time() - t0
 
-    # Test evaluation for BF
     opt_cfg_bf = best_node_bf.config
     pipe_bf = ClusterThenPredictPipeline(
         name="BruteForce_Optimal",

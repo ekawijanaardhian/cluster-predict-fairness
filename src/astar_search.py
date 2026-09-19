@@ -39,11 +39,11 @@ class PipelineSearchNode:
         parent_id: Optional[int] = None,
         node_id: int = 0
     ):
-        self.level = level              # 0: Root, 1: Cluster, 2: Classifier (Goal)
-        self.config = config            # Configuration dictionary
-        self.g_cost = g_cost            # Path cost so far (validation error + fairness penalty)
-        self.h_cost = h_cost            # Admissible heuristic remaining cost
-        self.f_cost = g_cost + h_cost   # Total priority score
+        self.level = level
+        self.config = config
+        self.g_cost = g_cost
+        self.h_cost = h_cost
+        self.f_cost = g_cost + h_cost
         self.metrics = metrics or {}
         self.execution_time = execution_time
         self.parent_id = parent_id
@@ -68,7 +68,6 @@ class PipelineSearchNode:
                 if k in self.metrics:
                     res[k] = round(self.metrics[k], 4)
         return res
-
 
 class AStarFairnessPipelineSearcher:
     """
@@ -124,7 +123,7 @@ class AStarFairnessPipelineSearcher:
             eod = metrics.get('Equalized_Odds_Diff', 1.0)
             min_tpr = metrics.get('Min_TPR', 0.0)
             
-            # Constrained Program: Prune infeasible states by setting g(n) = infinity
+
             if dpd > self.epsilon_dpd or (self.sensitivity_floor > 0 and min_tpr < self.sensitivity_floor):
                 return float('inf')
             
@@ -142,7 +141,7 @@ class AStarFairnessPipelineSearcher:
     def _estimate_heuristic(self, level: int) -> float:
         if self.heuristic_mode == 'zero' or self.constrained_mode:
             return 0.0
-        # Admissible optimistic bound per tree depth
+
         heuristic_map = {
             0: 0.15,
             1: 0.08,
@@ -210,7 +209,6 @@ class AStarFairnessPipelineSearcher:
         self.explored_nodes_ = []
         self.node_counter = 0
 
-        # Create Root Node (Level 0)
         root = PipelineSearchNode(
             level=0,
             config={},
@@ -230,7 +228,6 @@ class AStarFairnessPipelineSearcher:
             cfg_summary = ", ".join([f"{k}={v}" for k, v in current.config.items()]) or "ROOT"
             print(f"[{step:02d}] POP Level {current.level} (ID={current.node_id}) | f(n)={current.f_cost:.4f} [g={current.g_cost:.4f}, h={current.h_cost:.4f}] | {cfg_summary}")
 
-            # Goal Check: Level 2 (Both Clustering and Classifier family resolved)
             if current.level == 2:
                 if current.g_cost < float('inf'):
                     self.optimal_node_ = current
@@ -248,7 +245,7 @@ class AStarFairnessPipelineSearcher:
             child_configs: List[Dict[str, Any]] = []
 
             if next_level == 1:
-                # Level 1: Stage 1 Clustering branching (Algorithm & K)
+
                 for method in self.candidate_clustering_methods:
                     for k in self.candidate_k:
                         c = dict(current.config)
@@ -257,7 +254,7 @@ class AStarFairnessPipelineSearcher:
                         child_configs.append(c)
 
             elif next_level == 2:
-                # Level 2: Stage 2 Classifier branching (Goal Level)
+
                 for clf in self.candidate_classifiers:
                     c = dict(current.config)
                     c['classifier_type'] = clf
@@ -270,7 +267,6 @@ class AStarFairnessPipelineSearcher:
                 g_cost = self._compute_cost(metrics, exec_time)
                 h_cost = self._estimate_heuristic(next_level)
 
-                # Prune infinite cost (infeasible) nodes in constrained mode
                 if g_cost == float('inf'):
                     print(f"   -> [PRUNED INFEASIBLE] {child_cfg} (DPD={metrics.get('Demographic_Parity_Diff', 0):.4f}, Min_TPR={metrics.get('Min_TPR', 0):.4f})")
                     continue
@@ -290,7 +286,6 @@ class AStarFairnessPipelineSearcher:
 
         trajectory_df = pd.DataFrame([n.to_dict() for n in self.explored_nodes_])
         return self.optimal_node_, trajectory_df
-
 
 class BruteForceExhaustiveSearcher:
     """

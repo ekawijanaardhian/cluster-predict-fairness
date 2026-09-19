@@ -7,7 +7,6 @@ import os
 import pandas as pd
 from typing import Tuple, Optional
 
-# Standard CDC BRFSS 2015 Diabetes feature schema
 BRFSS_FEATURES = [
     'HighBP', 'HighChol', 'CholCheck', 'BMI', 'Smoker', 
     'Stroke', 'HeartDiseaseorAttack', 'PhysActivity', 'Fruits', 
@@ -49,12 +48,11 @@ def load_data(
         print(f"[DataLoader] Subsampling {n_samples} samples (from {len(df)} total rows)...")
         df = df.sample(n=n_samples, random_state=random_state).reset_index(drop=True)
     
-    # Define binary protected attribute:
-    # If Income: Low Income (Income <= 4, i.e., <$25k-$35k) is unprivileged (0), High Income is privileged (1)
+
     if 'Income' in df.columns and 'Income_Binary' not in df.columns:
         df['Income_Binary'] = (df['Income'] >= 5).astype(int)
     
-    # If Education: Low Education (Education <= 3, high school or less) is unprivileged (0)
+
     if 'Education' in df.columns and 'Education_Binary' not in df.columns:
         df['Education_Binary'] = (df['Education'] >= 4).astype(int)
         
@@ -71,7 +69,7 @@ def load_data(
     return X, y, s
 
 if __name__ == '__main__':
-    # Load the complete CDC BRFSS 2015 cohort (253,680 records)
+
     X, y, s = load_data()
     print("Columns:", list(X.columns))
     print(X.head())

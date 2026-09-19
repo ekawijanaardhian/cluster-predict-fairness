@@ -28,7 +28,6 @@ SUBMISSION_DIR = os.path.join("results", "submission_package")
 FIGURES_DIR = os.path.join(SUBMISSION_DIR, "figures")
 os.makedirs(FIGURES_DIR, exist_ok=True)
 
-# Global Publication Plot Settings (600 DPI Target)
 plt.style.use('seaborn-v0_8-whitegrid' if 'seaborn-v0_8-whitegrid' in plt.style.available else 'default')
 plt.rcParams['font.family'] = 'sans-serif'
 plt.rcParams['font.sans-serif'] = ['DejaVu Sans', 'Arial', 'Helvetica']
@@ -39,9 +38,6 @@ plt.rcParams['xtick.labelsize'] = 9.5
 plt.rcParams['ytick.labelsize'] = 9.5
 plt.rcParams['legend.fontsize'] = 9.0
 
-# -----------------------------------------------------------------------------
-# 1. HIGH-RESOLUTION 600 DPI FIGURE GENERATION
-# -----------------------------------------------------------------------------
 def save_multi_format(fig, base_name):
     """Saves figure in 600 DPI PNG, 600 DPI TIFF (LZW), vector PDF, and vector EPS formats."""
     png_path = os.path.join(FIGURES_DIR, f"{base_name}.png")
@@ -49,15 +45,15 @@ def save_multi_format(fig, base_name):
     pdf_path = os.path.join(FIGURES_DIR, f"{base_name}.pdf")
     eps_path = os.path.join(FIGURES_DIR, f"{base_name}.eps")
     
-    # Save vector PDF & EPS first before closing
+
     fig.savefig(pdf_path, format='pdf', bbox_inches='tight')
     fig.savefig(eps_path, format='eps', bbox_inches='tight')
     
-    # Save 600 DPI PNG
+
     fig.savefig(png_path, dpi=600, bbox_inches='tight')
     plt.close(fig)
     
-    # Convert and save as 600 DPI TIFF with LZW compression
+
     im = Image.open(png_path)
     im.save(tiff_path, format='TIFF', compression='tiff_lzw', dpi=(600, 600))
     
@@ -69,7 +65,7 @@ def generate_all_figures():
     print("GENERATING 600 DPI PUBLICATION FIGURES (Fig1 - Fig6) IN TIFF AND PNG FORMATS")
     print("=" * 80)
     
-    # ------------------ Fig 1: Framework Architecture ------------------
+
     fig, ax = plt.subplots(figsize=(13.5, 5.2), dpi=600)
     ax.axis('off')
     c_blue, c_teal, c_green, c_purple = '#2563eb', '#0d9488', '#16a34a', '#7c3aed'
@@ -96,7 +92,6 @@ def generate_all_figures():
     plt.tight_layout()
     save_multi_format(fig, "Fig1")
 
-    # ------------------ Fig 2: Search Efficiency & Scalability (3 Panels) ------------------
     eval_18 = [3, 18]
     time_18 = [74.73, 125.69]
     cost_18 = [0.4702, 0.4688]
@@ -110,7 +105,6 @@ def generate_all_figures():
     width = 0.35
     c_astar, c_bf = '#10b981', '#f87171'
 
-    # Panel (a): Evaluated Pipeline Nodes
     rects1 = ax1.bar(x - width/2, [eval_18[0], eval_105[0]], width, label='A* Search (Informed)', color=c_astar, edgecolor='black')
     rects2 = ax1.bar(x + width/2, [eval_18[1], eval_105[1]], width, label='Brute-Force (Grid)', color=c_bf, edgecolor='black')
     ax1.set_ylabel("Evaluated Pipeline Configurations", fontweight='bold')
@@ -123,7 +117,6 @@ def generate_all_figures():
     ax1.grid(axis='y', linestyle='--', alpha=0.5)
     ax1.legend(loc='upper left', frameon=True, fontsize=8.5)
 
-    # Panel (b): Execution Time (Seconds)
     rects3 = ax2.bar(x - width/2, [time_18[0], time_105[0]], width, label='A* Search', color=c_astar, edgecolor='black')
     rects4 = ax2.bar(x + width/2, [time_18[1], time_105[1]], width, label='Brute-Force', color=c_bf, edgecolor='black')
     ax2.set_ylabel("Execution Time (Seconds)", fontweight='bold')
@@ -136,7 +129,6 @@ def generate_all_figures():
     ax2.grid(axis='y', linestyle='--', alpha=0.5)
     ax2.legend(loc='upper left', frameon=True, fontsize=8.5)
 
-    # Panel (c): Objective Cost f(n) Comparison
     rects5 = ax3.bar(x - width/2, [cost_18[0], cost_105[0]], width, label='A* Search', color=c_astar, edgecolor='black')
     rects6 = ax3.bar(x + width/2, [cost_18[1], cost_105[1]], width, label='Brute-Force (Global Best)', color='#3b82f6', edgecolor='black')
     ax3.set_ylabel("Optimization Cost f(n) [Lower is Better]", fontweight='bold')
@@ -152,7 +144,6 @@ def generate_all_figures():
     plt.tight_layout()
     save_multi_format(fig, "Fig2")
 
-    # ------------------ Fig 3: Cluster Optimization Curve ------------------
     ks = np.arange(2, 11)
     db_scores = [1.2184, 1.4820, 1.6210, 1.7450, 1.8320, 1.9140, 1.9870, 2.0510, 2.1120]
     ch_scores = [24510.5, 18920.3, 15410.2, 13120.8, 11450.6, 10210.4, 9180.2, 8340.5, 7620.1]
@@ -181,7 +172,6 @@ def generate_all_figures():
     plt.tight_layout()
     save_multi_format(fig, "Fig3")
 
-    # ------------------ Fig 4: Pareto Frontier & Trade-Off ------------------
     fig, ax = plt.subplots(figsize=(9.2, 5.8), dpi=600)
     configs = [
         ("Single Model (Logistic K=1)", 0.8197, 0.3063, '#94a3b8', 'o', 130),
@@ -196,7 +186,6 @@ def generate_all_figures():
     for name, auc, dpd, color, marker, size in configs:
         ax.scatter(dpd, auc, color=color, marker=marker, s=size, label=name, edgecolors='black', linewidth=1.2, zorder=5)
 
-    # Annotations
     ax.scatter(0.2957, 0.8261, s=450, facecolors='none', edgecolors='#10b981', linewidth=2.5, zorder=6, linestyle='--')
     ax.annotate("Hierarchical MoE v2 (K=2)\nRestores AUC (0.8261) & Net Benefit\n(AUC Recovery +0.1238 vs v1)",
                 xy=(0.2957, 0.8261), xytext=(0.10, 0.77),
@@ -221,8 +210,6 @@ def generate_all_figures():
     plt.tight_layout()
     save_multi_format(fig, "Fig4")
 
-    # ------------------ Fig 5: Lambda Sweep Heatmap (q1_lambda_sweep.csv) ------------------
-    # Exact CSV values
     lambdas = ['0.1', '0.5', '1.0', '2.0', '5.0', '10.0', '20.0', '50.0']
     matrix = np.array([
         [0.8261, 72.54, 0.2957, 0.4938, 0.2058],
@@ -243,7 +230,6 @@ def generate_all_figures():
     plt.tight_layout()
     save_multi_format(fig, "Fig5")
 
-    # ------------------ Fig 6: Multi-Seed Boxplots (5 Splits) ------------------
     single_lgb_auc = [0.8263, 0.8260, 0.8268, 0.8259, 0.8265]
     v2_moe_auc     = [0.8261, 0.8258, 0.8264, 0.8257, 0.8262]
     v1_hard_auc    = [0.7022, 0.7018, 0.7005, 0.6988, 0.7049]
@@ -278,9 +264,6 @@ def generate_all_figures():
     plt.tight_layout()
     save_multi_format(fig, "Fig6")
 
-# -----------------------------------------------------------------------------
-# 2. GENERATE HIGHLIGHTS (ELSEVIER 85-CHARACTER COMPLIANCE)
-# -----------------------------------------------------------------------------
 def generate_highlights_document():
     print("\n" + "-" * 80)
     print("GENERATING HIGHLIGHTS (ELSEVIER 85-CHARACTER COMPLIANCE)")
@@ -294,13 +277,12 @@ def generate_highlights_document():
         "Structural parity claims require a utility-matched counterfactual evaluation."
     ]
     
-    # Check 85-char limit
+
     print("Highlights length verification:")
     for idx, h in enumerate(highlights, 1):
         print(f"  [{idx}] ({len(h)} chars): {h}")
         assert len(h) <= 85, f"Highlight {idx} exceeds 85 chars: {len(h)}"
 
-    # Markdown
     md_content = "# Highlights\n\n"
     for h in highlights:
         md_content += f"- {h}\n"
@@ -309,7 +291,6 @@ def generate_highlights_document():
         f.write(md_content)
     print(f"[Highlights] Saved: {md_path}")
 
-    # Docx
     doc = Document()
     p_title = doc.add_heading("Highlights", level=1)
     p_title.runs[0].font.size = Pt(14)
@@ -325,9 +306,6 @@ def generate_highlights_document():
     doc.save(docx_path)
     print(f"[Highlights] Saved: {docx_path}")
 
-# -----------------------------------------------------------------------------
-# 3. GENERATE FIGURE CAPTIONS DOCUMENT
-# -----------------------------------------------------------------------------
 def generate_figure_captions_document():
     print("\n" + "-" * 80)
     print("GENERATING STANDALONE FIGURE CAPTIONS DOCUMENT")
@@ -342,7 +320,7 @@ def generate_figure_captions_document():
         ("Fig. 6", "Multi-seed statistical stability across 5 independent stratified random data splits ($N=253,680$ total, test $N=50,736$): (a) AUC-ROC utility distributions; (b) Demographic Parity Difference (DPD) distributions comparing unmitigated single LightGBM, hierarchical mixture-of-experts (HMoE), and hard partitioning (HP).")
     ]
     
-    # Markdown
+
     md_content = "# Figure Captions\n\n"
     for num, cap in captions:
         md_content += f"**{num}.** {cap}\n\n"
@@ -351,7 +329,6 @@ def generate_figure_captions_document():
         f.write(md_content)
     print(f"[Figure Captions] Saved: {md_path}")
 
-    # Docx
     doc = Document()
     p_title = doc.add_heading("Figure Captions", level=1)
     p_title.runs[0].font.size = Pt(14)
@@ -371,9 +348,6 @@ def generate_figure_captions_document():
     doc.save(docx_path)
     print(f"[Figure Captions] Saved: {docx_path}")
 
-# -----------------------------------------------------------------------------
-# 4. GENERATE DECLARATION OF COMPETING INTEREST
-# -----------------------------------------------------------------------------
 def generate_competing_interest_document():
     print("\n" + "-" * 80)
     print("GENERATING DECLARATION OF COMPETING INTEREST")
@@ -403,9 +377,6 @@ def generate_competing_interest_document():
     doc.save(docx_path)
     print(f"[Competing Interest] Saved: {docx_path}")
 
-# -----------------------------------------------------------------------------
-# 5. GENERATE COMPREHENSIVE SUPPLEMENTARY MATERIAL
-# -----------------------------------------------------------------------------
 def generate_supplementary_material():
     print("\n" + "-" * 80)
     print("GENERATING COMPREHENSIVE SUPPLEMENTARY MATERIAL (DOCX & MD)")
@@ -482,7 +453,6 @@ To evaluate the statistical significance of predictive discrimination and dispar
         f.write(md_supp)
     print(f"[Supplementary Material] Saved: {md_path}")
 
-    # Docx formatting
     doc = Document()
     p_t = doc.add_heading("Supplementary Material", level=1)
     p_t.runs[0].font.size = Pt(16)
@@ -494,7 +464,6 @@ To evaluate the statistical significance of predictive discrimination and dispar
     r_s.font.size = Pt(10.5)
     r_s.font.name = "Arial"
 
-    # Section S1
     doc.add_heading("Section S1: Sensitivity Analysis over Fairness Regularization Parameter (λ_fairness)", level=2)
     doc.add_paragraph("Table S1 shows the sensitivity sweep across two orders of magnitude in λ_fairness on CDC BRFSS 2015.")
     
@@ -523,7 +492,6 @@ To evaluate the statistical significance of predictive discrimination and dispar
             row_cells[i].text = val
             row_cells[i].paragraphs[0].runs[0].font.size = Pt(9)
 
-    # Section S2
     doc.add_heading("Section S2: Multi-Seed Stability and Variance Analysis (5 Seeds)", level=2)
     table2 = doc.add_table(rows=1, cols=6)
     table2.alignment = WD_TABLE_ALIGNMENT.CENTER
@@ -549,7 +517,6 @@ To evaluate the statistical significance of predictive discrimination and dispar
             row_cells[i].text = val
             row_cells[i].paragraphs[0].runs[0].font.size = Pt(9)
 
-    # Section S3
     doc.add_heading("Section S3: In-Processing Exponentiated Gradient Baselines (ExpGrad-DP & ExpGrad-EO)", level=2)
     doc.add_paragraph("Table S3 summarizes in-processing reductions under Demographic Parity vs Equalized Odds constraints.")
 
@@ -576,9 +543,6 @@ To evaluate the statistical significance of predictive discrimination and dispar
     doc.save(docx_path)
     print(f"[Supplementary Material] Saved: {docx_path}")
 
-# -----------------------------------------------------------------------------
-# MAIN DRIVER
-# -----------------------------------------------------------------------------
 def main():
     print("=" * 80)
     print("BUILDING COMPLETE ELSEVIER Q1 SUBMISSION PACKAGE ARTIFACTS")

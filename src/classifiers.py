@@ -31,7 +31,7 @@ def get_base_estimator(
     """Factory for standard machine learning classifiers with adaptive imbalance awareness."""
     model_type = model_type.lower()
     
-    # Adaptive scale_pos_weight / class_weight calculation
+
     scale_pos = max(1.0, (1.0 - imbalance_ratio) / (imbalance_ratio + 1e-6)) if imbalance_ratio < 0.2 else 1.0
     
     if model_type == 'lightgbm':
@@ -137,7 +137,7 @@ class GlobalResidualClassifier:
         y_arr = np.asarray(y).astype(int)
         pos_ratio = float(np.mean(y_arr == 1))
         
-        # 1. Train Global Base Model on all data
+
         self.global_model = get_base_estimator(
             self.base_model_type, 
             imbalance_ratio=pos_ratio, 
@@ -152,18 +152,17 @@ class GlobalResidualClassifier:
             self.is_fitted = True
             return self
 
-        # Compute global logit for training data
         p_global_train = self.global_model.predict_proba(X)[:, 1]
         z_global_train = self._get_logit(p_global_train)
         
-        # Validation global logits for calibration
+
         has_val = (X_val is not None and y_val is not None and val_cluster_labels is not None)
         if has_val:
             y_val_arr = np.asarray(y_val).astype(int)
             p_global_val = self.global_model.predict_proba(X_val)[:, 1]
             z_global_val = self._get_logit(p_global_val)
         
-        # 2. Train Cluster-Specific Specialized Estimators
+
         X_df = X if isinstance(X, pd.DataFrame) else pd.DataFrame(X)
         
         for k in range(self.n_clusters):
@@ -177,14 +176,13 @@ class GlobalResidualClassifier:
                 w_k = sample_weights[mask] if sample_weights is not None else None
                 pos_ratio_k = float(np.mean(y_k == 1))
                 
-                # Intercept parity shift calculation
+
                 if self.align_cluster_intercept:
                     shift = np.log((pos_ratio + 1e-5) / (1.0 - pos_ratio + 1e-5)) - np.log((pos_ratio_k + 1e-5) / (1.0 - pos_ratio_k + 1e-5))
                     self.cluster_intercept_shifts[k] = float(self.parity_shift_weight * shift)
                 else:
                     self.cluster_intercept_shifts[k] = 0.0
 
-                # Feature augmentation with z_global
                 X_k_aug = X_k.copy()
                 X_k_aug['z_global'] = z_k
                 
@@ -200,7 +198,7 @@ class GlobalResidualClassifier:
                     c_model.fit(X_k_aug, y_k)
                 self.cluster_models[k] = c_model
                 
-                # 3. Fit Platt / Logistic Calibrator per cluster
+
                 if self.calibrate_clusters and has_val:
                     val_mask_k = (val_cluster_labels == k)
                     if np.sum(val_mask_k) >= 20 and len(np.unique(y_val_arr[val_mask_k])) > 1:
@@ -208,7 +206,7 @@ class GlobalResidualClassifier:
                         X_v_k['z_global'] = z_global_val[val_mask_k]
                         raw_val_p = c_model.predict_proba(X_v_k)[:, 1]
                         
-                        # Apply intercept shift to validation logit
+
                         shift_k = self.cluster_intercept_shifts.get(k, 0.0)
                         shifted_val_logit = self._get_logit(raw_val_p) + shift_k
                         raw_val_logit_2d = shifted_val_logit.reshape(-1, 1)
@@ -238,7 +236,7 @@ class GlobalResidualClassifier:
         n_samples = len(X)
         probas = np.zeros((n_samples, 2), dtype=np.float64)
         
-        # 1. Global prediction & logit
+
         p_global = self.global_model.predict_proba(X)[:, 1]
         
         if self.n_clusters <= 1 or not self.cluster_models:
@@ -251,7 +249,6 @@ class GlobalResidualClassifier:
         X_aug = X_df.copy()
         X_aug['z_global'] = z_global
 
-        # 2. Compute probabilities for all clusters
         cluster_p1_matrix = np.zeros((n_samples, self.n_clusters), dtype=np.float64)
         for k in range(self.n_clusters):
             c_model = self.cluster_models.get(k, self.global_model)
@@ -260,13 +257,12 @@ class GlobalResidualClassifier:
             else:
                 raw_p1 = c_model.predict_proba(X_aug)[:, 1]
             
-            # Apply cluster intercept shift
+
             shift_k = self.cluster_intercept_shifts.get(k, 0.0)
             if abs(shift_k) > 1e-4:
                 raw_logit = self._get_logit(raw_p1) + shift_k
                 raw_p1 = 1.0 / (1.0 + np.exp(-raw_logit))
 
-            # Apply cluster-specific calibration if available
             calibrator = self.cluster_calibrators.get(k)
             if calibrator is not None:
                 raw_logit = self._get_logit(raw_p1).reshape(-1, 1)
@@ -275,9 +271,8 @@ class GlobalResidualClassifier:
             else:
                 cluster_p1_matrix[:, k] = raw_p1
 
-        # 3. Aggregation (Soft Mixture of Experts vs Hard Selection)
         if self.soft_assignment and cluster_responsibilities is not None:
-            # p_moe = sum_k w_k * p_k
+
             p1_final = np.sum(cluster_responsibilities * cluster_p1_matrix, axis=1)
         elif cluster_labels is not None:
             p1_final = np.zeros(n_samples, dtype=np.float64)
@@ -290,7 +285,6 @@ class GlobalResidualClassifier:
         probas[:, 1] = np.clip(p1_final, 0.0, 1.0)
         probas[:, 0] = 1.0 - probas[:, 1]
         return probas
-
 
 class ClusterClassifierManager:
     """
@@ -307,7 +301,7 @@ class ClusterClassifierManager:
         use_global_residual: bool = True,
         soft_assignment: bool = True,
         calibrate_clusters: bool = True,
-        fairness_constraint: str = 'equalized_odds', # 'equalized_odds' or 'demographic_parity'
+        fairness_constraint: str = 'equalized_odds',
         eps: float = 0.02,
         random_state: int = 42
     ):
@@ -472,7 +466,6 @@ class ClusterClassifierManager:
             self.cluster_model_names = self.residual_moe_engine.cluster_model_names
             return self
 
-        # Standard independent fitting fallback
         global_pos_ratio = float(np.mean(y == 1))
         self.global_fallback_model = get_base_estimator(self.model_type, imbalance_ratio=global_pos_ratio, random_state=self.random_state)
         if sample_weights is not None:

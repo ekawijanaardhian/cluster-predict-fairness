@@ -40,7 +40,6 @@ def compute_all_metrics(
     
     p1 = y_proba[:, 1] if (isinstance(y_proba, np.ndarray) and y_proba.ndim > 1) else np.asarray(y_proba)
 
-    # 1. Clinical Utility Metrics
     acc = accuracy_score(y_t, y_p)
     bacc = balanced_accuracy_score(y_t, y_p)
     f1 = f1_score(y_t, y_p, zero_division=0)
@@ -52,10 +51,8 @@ def compute_all_metrics(
     except Exception:
         auc = 0.5
 
-    # 2. Sub-group error rates
-    # Privileged (s=1)
     mask_s1 = (s_arr == 1)
-    # Unprivileged (s=0)
+
     mask_s0 = (s_arr == 0)
 
     fpr_s1 = false_positive_rate(y_t[mask_s1], y_p[mask_s1]) if np.sum(mask_s1) > 0 else 0.0
@@ -63,12 +60,10 @@ def compute_all_metrics(
     fnr_s1 = false_negative_rate(y_t[mask_s1], y_p[mask_s1]) if np.sum(mask_s1) > 0 else 0.0
     fnr_s0 = false_negative_rate(y_t[mask_s0], y_p[mask_s0]) if np.sum(mask_s0) > 0 else 0.0
 
-    # True Positive Rate per group (Sensitivity) for Levelling-Up assessment
     tpr_s1 = 1.0 - fnr_s1
     tpr_s0 = 1.0 - fnr_s0
     min_tpr = min(tpr_s1, tpr_s0)
 
-    # 3. Disparity Metrics
     dp_diff = demographic_parity_difference(y_t, y_p, sensitive_features=s_arr)
     dp_ratio = demographic_parity_ratio(y_t, y_p, sensitive_features=s_arr)
     eo_diff = equalized_odds_difference(y_t, y_p, sensitive_features=s_arr)
@@ -125,18 +120,16 @@ def compute_decision_curve_net_benefit(
             continue
         weight = pt / (1.0 - pt)
         
-        # Model Strategy
+
         preds = (p1 >= pt).astype(int)
         tp = np.sum((preds == 1) & (y_t == 1))
         fp = np.sum((preds == 1) & (y_t == 0))
         nb_model = (tp / n) - (fp / n) * weight
 
-        # Treat All Strategy: All patients predicted positive
         tp_all = np.sum(y_t == 1)
         fp_all = np.sum(y_t == 0)
         nb_all = (tp_all / n) - (fp_all / n) * weight
 
-        # Treat None Strategy: No patients predicted positive (Net Benefit = 0)
         nb_none = 0.0
 
         rows.append({
@@ -153,4 +146,3 @@ def format_metrics_table(metrics_dict: Dict[str, Dict[str, float]]) -> pd.DataFr
     """Formats comparison dictionary into a clean pandas DataFrame."""
     df = pd.DataFrame(metrics_dict).T
     return df
-

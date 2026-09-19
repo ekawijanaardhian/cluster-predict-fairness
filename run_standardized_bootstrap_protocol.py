@@ -31,9 +31,6 @@ from src.metrics import compute_all_metrics, compute_decision_curve_net_benefit
 RESULTS_DIR = "results"
 os.makedirs(RESULTS_DIR, exist_ok=True)
 
-# -----------------------------------------------------------------------------
-# HELPER: Fast Vectorized Metric Computations for Bootstrap
-# -----------------------------------------------------------------------------
 def compute_metrics_fast(
     y_true: np.ndarray,
     y_score: np.ndarray,
@@ -46,7 +43,7 @@ def compute_metrics_fast(
     """
     n = len(y_true)
     
-    # 1. AUC-ROC
+
     if len(np.unique(y_true)) > 1:
         try:
             auc = roc_auc_score(y_true, y_score)
@@ -55,7 +52,7 @@ def compute_metrics_fast(
     else:
         auc = 0.5
         
-    # 2. Selection Rates
+
     mask_s1 = (s == 1)
     mask_s0 = (s == 0)
     n_s1 = np.sum(mask_s1)
@@ -69,17 +66,16 @@ def compute_metrics_fast(
     min_sr = min(sr_s1, sr_s0)
     dpr = (min_sr / max_sr) if max_sr > 0 else 1.0
     
-    # 3. Equalized Odds (FPR and TPR disparities)
-    # Privileged
+
     tpr_s1 = float(np.mean(y_pred[(mask_s1) & (y_true == 1)] == 1)) if np.sum((mask_s1) & (y_true == 1)) > 0 else 0.0
     fpr_s1 = float(np.mean(y_pred[(mask_s1) & (y_true == 0)] == 1)) if np.sum((mask_s1) & (y_true == 0)) > 0 else 0.0
-    # Unprivileged
+
     tpr_s0 = float(np.mean(y_pred[(mask_s0) & (y_true == 1)] == 1)) if np.sum((mask_s0) & (y_true == 1)) > 0 else 0.0
     fpr_s0 = float(np.mean(y_pred[(mask_s0) & (y_true == 0)] == 1)) if np.sum((mask_s0) & (y_true == 0)) > 0 else 0.0
     
     eod = max(abs(tpr_s1 - tpr_s0), abs(fpr_s1 - fpr_s0))
     
-    # 4. Decision Curve Analysis Net Benefit at pt = 0.10 and pt = 0.15
+
     w10 = 0.10 / 0.90
     w15 = 0.15 / 0.85
     
@@ -128,8 +124,8 @@ def delong_roc_test(y_true: np.ndarray, score_a: np.ndarray, score_b: np.ndarray
     Returns: (auc_diff, z_score, p_value)
     """
     y = np.asarray(y_true).astype(int)
-    m = np.sum(y == 1) # positives
-    n = np.sum(y == 0) # negatives
+    m = np.sum(y == 1)
+    n = np.sum(y == 0)
     
     if m == 0 or n == 0:
         return 0.0, 0.0, 1.0
@@ -137,10 +133,7 @@ def delong_roc_test(y_true: np.ndarray, score_a: np.ndarray, score_b: np.ndarray
     def get_delong_structural_components(scores):
         pos = scores[y == 1]
         neg = scores[y == 0]
-        # V10: placement values for positive samples
-        # V01: placement values for negative samples
-        # Vectorized comparison:
-        # V10[i] = (1/n) * sum_j I(pos[i] > neg[j]) + 0.5 * I(pos[i] == neg[j])
+
         comp = pos[:, None] - neg[None, :]
         v10 = np.mean((comp > 0) + 0.5 * (comp == 0), axis=1)
         v01 = np.mean((comp < 0) + 0.5 * (comp == 0), axis=0)
@@ -152,7 +145,7 @@ def delong_roc_test(y_true: np.ndarray, score_a: np.ndarray, score_b: np.ndarray
     
     delta_auc = auc_a - auc_b
     
-    # Covariances
+
     cov_v10 = np.cov(v10_a, v10_b, ddof=1)
     cov_v01 = np.cov(v01_a, v01_b, ddof=1)
     
@@ -167,19 +160,16 @@ def delong_roc_test(y_true: np.ndarray, score_a: np.ndarray, score_b: np.ndarray
     p_val = 2.0 * (1.0 - stats.norm.cdf(abs(z)))
     return float(delta_auc), float(z), float(p_val)
 
-# -----------------------------------------------------------------------------
-# MAIN PROTOCOL EXECUTION
-# -----------------------------------------------------------------------------
 def run_protocol():
     print("=" * 80)
     print("STANDARDIZED STATISTICAL BOOTSTRAP INFERENCE PROTOCOL (B = 2,000)")
     print("=" * 80)
     
-    # Load dataset
+
     print("\n[Data] Loading BRFSS 2015 Diabetes Dataset (N = 253,680)...")
     X, y, s = load_data('data/diabetes_binary_health_indicators_BRFSS2015.csv', protected_attr='Income_Binary')
     
-    # Exact Stratified Split: Train (68%), Val (12%), Test (20%)
+
     X_temp, X_test, y_temp, y_test, s_temp, s_test = train_test_split(
         X, y, s, test_size=0.20, random_state=42, stratify=y
     )
@@ -190,9 +180,7 @@ def run_protocol():
     print(f"Dataset split sizes: Train = {len(X_train):,}, Val = {len(X_val):,}, Test = {len(X_test):,}")
     print(f"Test set: Positive prevalence = {y_test.mean():.4f}, Unprivileged (Low Income) = {(s_test == 0).mean():.4f}")
     
-    # -------------------------------------------------------------------------
-    # STEP 0: Fit All 6 Architectures & Extract Standardized Test Vectors
-    # -------------------------------------------------------------------------
+
     print("\n" + "-" * 80)
     print("STEP 0: FITTING 6 CORE ARCHITECTURES AND EXTRACTING PER-RECORD VECTORS")
     print("-" * 80)
@@ -209,7 +197,7 @@ def run_protocol():
     
     vectors: Dict[str, Dict[str, Any]] = {}
     
-    # 1. Single LightGBM
+
     print("Fitting [1/6] Single_LightGBM (Unmitigated)...")
     m_single = get_base_estimator('lightgbm', random_state=42)
     m_single.fit(X_tr_p, y_tr_arr)
@@ -222,7 +210,7 @@ def run_protocol():
         'rule': f"Validation_Youden_J (theta={t_single:.4f})"
     }
     
-    # 2. PreProcessing: Reweighing
+
     print("Fitting [2/6] PreProcessing_Reweighing...")
     weights_tr = prep.compute_reweighing_weights(s_train, y_train)
     m_reweigh = get_base_estimator('lightgbm', random_state=42)
@@ -236,7 +224,7 @@ def run_protocol():
         'rule': f"Validation_Youden_J (theta={t_reweigh:.4f})"
     }
     
-    # 3. InProcessing: ExpGrad-DP
+
     print("Fitting [3/6] InProcessing_ExpGrad_DP (Demographic Parity)...")
     base_dp = get_base_estimator('lightgbm', random_state=42)
     mitigator_dp = ExponentiatedGradient(
@@ -255,7 +243,7 @@ def run_protocol():
         'rule': f"Validation_Youden_J (theta={t_indp:.4f})"
     }
     
-    # 4. PostProcessing: ThresholdOptimizer
+
     print("Fitting [4/6] PostProcessing_ThresholdOptimizer (objective='balanced_accuracy_score')...")
     post_opt = ThresholdOptimizer(
         estimator=m_single,
@@ -271,7 +259,7 @@ def run_protocol():
         'rule': "Group_Specific_EqualizedOdds_Threshold_Policy (BalAcc)"
     }
     
-    # 5. v1 Hard Cluster-then-Predict (K=2)
+
     print("Fitting [5/6] v1_Hard_Cluster (K=2)...")
     pipe_v1 = ClusterThenPredictPipeline(
         name="v1_Hard_Cluster", n_clusters=2, clustering_method='kmeans', classifier_type='lightgbm',
@@ -285,7 +273,7 @@ def run_protocol():
         'rule': f"Validation_Youden_J (theta={pipe_v1.calibrated_base_threshold:.4f})"
     }
     
-    # 6. v2 Hierarchical MoE (K=2)
+
     print("Fitting [6/6] v2_Hierarchical_MoE (K=2)...")
     pipe_v2 = ClusterThenPredictPipeline(
         name="v2_Hierarchical_MoE", n_clusters=2, clustering_method='kmeans', classifier_type='lightgbm',
@@ -299,7 +287,7 @@ def run_protocol():
         'rule': f"Validation_Youden_J (theta={pipe_v2.calibrated_base_threshold:.4f})"
     }
     
-    # Save per-record vectors to disk for auditability
+
     df_vectors = pd.DataFrame({
         'y_true': y_te_arr,
         's_income_binary': s_te_arr,
@@ -319,9 +307,7 @@ def run_protocol():
     df_vectors.to_csv(vec_path, index=False)
     print(f"[Saved] Per-record test set vectors saved to: {vec_path}")
     
-    # -------------------------------------------------------------------------
-    # STEP 1: Transposition Confirmation for v1
-    # -------------------------------------------------------------------------
+
     print("\n" + "-" * 80)
     print("STEP 1: CONFIRMATION OF TRANSPOSITION FOR v1")
     print("-" * 80)
@@ -349,18 +335,14 @@ def run_protocol():
     else:
         print(">> NOTE: Differing threshold yielded altered metric; standardized validation calibration enforced.")
         
-    # -------------------------------------------------------------------------
-    # STEP 2: Log Standardized Threshold Rules
-    # -------------------------------------------------------------------------
+
     print("\n" + "-" * 80)
     print("STEP 2: STANDARDIZED THRESHOLD RULES SUMMARY (§2.4)")
     print("-" * 80)
     for arch_name, d in vectors.items():
         print(f"  {arch_name:<35}: {d['rule']}")
         
-    # -------------------------------------------------------------------------
-    # STEP 3 & 4: Stratified Paired Bootstrap (B = 2,000) & Output Schema
-    # -------------------------------------------------------------------------
+
     print("\n" + "-" * 80)
     print("STEP 3: EXECUTING STRATIFIED PAIRED BOOTSTRAP (B = 2,000)")
     print("-" * 80)
@@ -369,7 +351,7 @@ def run_protocol():
     np.random.seed(42)
     n_test = len(y_te_arr)
     
-    # Stratified resampling indices according to (y_true, s)
+
     strata = {}
     for y_val_i in (0, 1):
         for s_val_i in (0, 1):
@@ -377,7 +359,7 @@ def run_protocol():
             strata[key] = np.where((y_te_arr == y_val_i) & (s_te_arr == s_val_i))[0]
             print(f"Stratum (y={y_val_i}, s={s_val_i}): N = {len(strata[key]):,} records ({len(strata[key])/n_test*100:.2f}%)")
             
-    # Pre-generate B paired bootstrap resample indices
+
     print(f"\nGenerating {B} stratified resample index arrays...")
     bootstrap_indices = []
     for b in range(B):
@@ -387,7 +369,7 @@ def run_protocol():
         ])
         bootstrap_indices.append(idx_b)
         
-    # Target Architectures
+
     architectures = [
         'Single_LightGBM',
         'PreProcessing_Reweighing',
@@ -399,7 +381,7 @@ def run_protocol():
     
     metrics_list = ['AUC', 'DPD', 'DPR', 'EOD', 'NetBenefit_pt10', 'NetBenefit_pt15']
     
-    # 1. Compute Full-Test-Set Plugin Estimates
+
     plugin_estimates = {}
     for arch in architectures:
         plugin_estimates[arch] = compute_metrics_fast(
@@ -410,9 +392,9 @@ def run_protocol():
             use_discrete_nb=(arch == 'PostProcessing_ThresholdOptimizer')
         )
         
-    # 2. Replicate Evaluation across B bootstrap samples
+
     boot_records = {arch: {m: np.zeros(B, dtype=float) for m in metrics_list} for arch in architectures}
-    # Also track subgroup calibration Brier & ECE
+
     boot_calib = {arch: {
         'Brier_Privileged': np.zeros(B, dtype=float),
         'Brier_Unprivileged': np.zeros(B, dtype=float),
@@ -438,7 +420,7 @@ def run_protocol():
             for m in metrics_list:
                 boot_records[arch][m][b] = m_b[m]
                 
-            # Subgroup calibration
+
             if np.sum(mask_s1_b) > 0:
                 boot_calib[arch]['Brier_Privileged'][b] = brier_score_loss(y_b[mask_s1_b], score_b[mask_s1_b])
                 boot_calib[arch]['ECE_Privileged'][b] = compute_ece(y_b[mask_s1_b], score_b[mask_s1_b])
@@ -451,14 +433,12 @@ def run_protocol():
             
     print(f"Bootstrap simulation completed in {time.time() - t0_boot:.2f} seconds.")
     
-    # -------------------------------------------------------------------------
-    # STEP 4: Build Output Tables
-    # -------------------------------------------------------------------------
+
     print("\n" + "-" * 80)
     print("STEP 4: ASSEMBLING BOOTSTRAP ESTIMATES AND DELTAS DATASETS")
     print("-" * 80)
     
-    # 1. bootstrap_estimates.csv
+
     est_rows = []
     for arch in architectures:
         rule_str = vectors[arch]['rule']
@@ -487,8 +467,7 @@ def run_protocol():
     df_estimates.to_csv(est_path, index=False)
     print(f"[Saved] bootstrap_estimates.csv saved to: {est_path}")
     
-    # 2. bootstrap_deltas.csv
-    # Required Comparisons: v2-single, v1-single, v2-v1, reweighing-single, reweighing-v2
+
     diff_pairs = [
         ('v2_minus_Single_LightGBM', 'v2_Hierarchical_MoE', 'Single_LightGBM'),
         ('v1_minus_Single_LightGBM', 'v1_Hard_Cluster', 'Single_LightGBM'),
@@ -508,7 +487,7 @@ def run_protocol():
             ci_low = float(np.percentile(diff_reps, 2.5))
             ci_high = float(np.percentile(diff_reps, 97.5))
             
-            # Two-tailed empirical p-value from proportion of replicates of opposite sign
+
             if p_delta >= 0:
                 p_val = float(np.mean(diff_reps <= 0)) * 2.0
             else:
@@ -530,14 +509,12 @@ def run_protocol():
     df_deltas.to_csv(delta_path, index=False)
     print(f"[Saved] bootstrap_deltas.csv saved to: {delta_path}")
     
-    # -------------------------------------------------------------------------
-    # STEP 5: Acceptance Tests Validation
-    # -------------------------------------------------------------------------
+
     print("\n" + "-" * 80)
     print("STEP 5: RUNNING ACCEPTANCE TESTS (UJI TERIMA)")
     print("-" * 80)
     
-    # Test 1: |Plugin_Estimate - Boot_Mean| < 2 * Boot_SE for each row
+
     bias_test_passed = True
     for idx_row, row in df_estimates.iterrows():
         diff = abs(row['Plugin_Estimate'] - row['Boot_Mean'])
@@ -547,20 +524,20 @@ def run_protocol():
             bias_test_passed = False
     print(f"Acceptance Test 1 (|Plugin - Boot_Mean| < 2*SE): {'PASSED ALL 36 CELLS' if bias_test_passed else 'FAILED'}")
     
-    # Test 2: DPD / (1 - DPR) <= 1.0 (or mathematically consistent with selection rate bounds)
+
     dpd_dpr_test_passed = True
     for arch in architectures:
         sub_df = df_estimates[df_estimates['Architecture'] == arch].set_index('Metric')
         dpd_val = sub_df.loc['DPD', 'Plugin_Estimate']
         dpr_val = sub_df.loc['DPR', 'Plugin_Estimate']
-        # Note: DPD = |SR1 - SR0|, DPR = min(SR0, SR1)/max(SR0, SR1) => DPD = max_SR * (1 - DPR) <= 1 - DPR (since max_SR <= 1)
+
         ratio = dpd_val / (1.0 - dpr_val + 1e-9)
         if ratio > 1.01:
             print(f"  [FAIL Test 2] {arch}: DPD / (1 - DPR) = {ratio:.4f} > 1.0")
             dpd_dpr_test_passed = False
     print(f"Acceptance Test 2 (DPD / (1 - DPR) <= 1.0): {'PASSED ALL ARCHITECTURES' if dpd_dpr_test_passed else 'FAILED'}")
     
-    # Test 3: Plugin_Delta exactly equals difference of two Plugin_Estimates
+
     delta_consistency_passed = True
     for idx_row, row in df_deltas.iterrows():
         comp = row['Comparison']
@@ -576,20 +553,18 @@ def run_protocol():
                     delta_consistency_passed = False
     print(f"Acceptance Test 3 (Plugin_Delta arithmetic identity): {'PASSED ALL 30 COMPARISONS' if delta_consistency_passed else 'FAILED'}")
     
-    # Test 4: Delta DPD for v1 - Single_LightGBM is approx -0.2578
+
     row_v1_dpd = df_deltas[(df_deltas['Comparison'] == 'v1_minus_Single_LightGBM') & (df_deltas['Metric'] == 'DPD')].iloc[0]
     dpd_diff_v1 = row_v1_dpd['Plugin_Delta']
     test4_passed = abs(dpd_diff_v1 - (-0.2578)) <= 0.015
     print(f"Acceptance Test 4 (Delta DPD v1 - Single ~ -0.2578): {'PASSED' if test4_passed else 'FAILED'} (Actual = {dpd_diff_v1:.4f})")
     
-    # -------------------------------------------------------------------------
-    # STEP 6: Inexpensive Additions: Subgroup Calibration & DeLong Test
-    # -------------------------------------------------------------------------
+
     print("\n" + "-" * 80)
     print("STEP 6: SUBGROUP CALIBRATION CIS AND DELONG AUC COMPARISONS")
     print("-" * 80)
     
-    # Subgroup Calibration Table
+
     subgroup_rows = []
     for arch in architectures:
         for group, name_str in [('Privileged', 'S=1 (Non-Low-Income)'), ('Unprivileged', 'S=0 (Low-Income)')]:
@@ -611,7 +586,7 @@ def run_protocol():
     df_subgroup_calib.to_csv(calib_path, index=False)
     print(f"[Saved] subgroup_calibration_bootstrap.csv saved to: {calib_path}")
     
-    # DeLong AUC Hypothesis Tests
+
     delong_rows = []
     for comp_name, arch_a, arch_b in diff_pairs:
         d_auc, z_score, p_val = delong_roc_test(y_te_arr, vectors[arch_a]['score'], vectors[arch_b]['score'])
@@ -634,7 +609,7 @@ def run_protocol():
     print("ALL PROTOCOL STEPS COMPLETED SUCCESSFULLY!")
     print("=" * 80)
     
-    # Print formatted summary tables for verification
+
     print("\n--- BOOTSTRAP ESTIMATES (§3.7 & §3.10) ---")
     print(df_estimates.to_string(index=False))
     

@@ -26,9 +26,6 @@ from src.metrics import compute_all_metrics
 RESULTS_DIR = "results"
 os.makedirs(RESULTS_DIR, exist_ok=True)
 
-# -----------------------------------------------------------------------------
-# PRIORITY 1: A* SEARCH VS BRUTE-FORCE EXHAUSTIVE GRID SEARCH
-# -----------------------------------------------------------------------------
 def run_priority1_search_benchmark(X_train, y_train, s_train, X_val, y_val, s_val, X_test, y_test, s_test):
     print("\n" + "=" * 80)
     print(">>> EXECUTING PRIORITY 1: A* SEARCH VS BRUTE-FORCE EXHAUSTIVE GRID SEARCH")
@@ -36,7 +33,7 @@ def run_priority1_search_benchmark(X_train, y_train, s_train, X_val, y_val, s_va
     
     ablation_results = []
     
-    # 1. A* Heuristic Search
+
     print("\n--- Running Search Strategy: A* Search (Informed Search) ---")
     t0 = time.time()
     astar_searcher = AStarFairnessPipelineSearcher(
@@ -88,7 +85,7 @@ def run_priority1_search_benchmark(X_train, y_train, s_train, X_val, y_val, s_va
         'Test_EOD': round(m_astar['Equalized_Odds_Diff'], 4)
     })
     
-    # 2. Brute-Force Exhaustive Grid Search
+
     print("\n--- Running Search Strategy: Brute-Force Exhaustive Grid Search ---")
     t0 = time.time()
     bf_searcher = BruteForceExhaustiveSearcher(
@@ -144,9 +141,6 @@ def run_priority1_search_benchmark(X_train, y_train, s_train, X_val, y_val, s_va
     print(df_abl.to_string(index=False))
     return df_abl
 
-# -----------------------------------------------------------------------------
-# PRIORITY 2: SINGLE-MODEL BASELINES VS ADAPTIVE CLUSTER-THEN-PREDICT
-# -----------------------------------------------------------------------------
 def run_priority2_structural_baselines(X_train, y_train, s_train, X_val, y_val, s_val, X_test, y_test, s_test):
     print("\n" + "=" * 80)
     print(">>> EXECUTING PRIORITY 2: SINGLE-MODEL BASELINES VS ADAPTIVE ARCHITECTURES")
@@ -219,9 +213,6 @@ def run_priority2_structural_baselines(X_train, y_train, s_train, X_val, y_val, 
     print(df_base.to_string(index=False))
     return df_base
 
-# -----------------------------------------------------------------------------
-# PRIORITY 3: LAMBDA FAIRNESS SENSITIVITY SWEEP
-# -----------------------------------------------------------------------------
 def run_priority3_lambda_sweep(X_train, y_train, s_train, X_val, y_val, s_val, X_test, y_test, s_test):
     print("\n" + "=" * 80)
     print(">>> EXECUTING PRIORITY 3: COMPREHENSIVE LAMBDA SWEEP & SELECTION DYNAMICS")
@@ -285,9 +276,6 @@ def run_priority3_lambda_sweep(X_train, y_train, s_train, X_val, y_val, s_val, X
     print(df_sweep.to_string(index=False))
     return df_sweep
 
-# -----------------------------------------------------------------------------
-# PRIORITY 4: 5-SEED STATISTICAL STABILITY
-# -----------------------------------------------------------------------------
 def run_priority4_multiseed_stability(X, y, s):
     print("\n" + "=" * 80)
     print(">>> EXECUTING PRIORITY 4: 5-SEED STATISTICAL STABILITY & SIGNIFICANCE TEST")
@@ -355,9 +343,6 @@ def run_priority4_multiseed_stability(X, y, s):
     print(df_seeds.to_string(index=False))
     return df_seeds
 
-# -----------------------------------------------------------------------------
-# PRIORITY 5: CROSS-ATTRIBUTE GENERALIZATION (Education_Binary)
-# -----------------------------------------------------------------------------
 def run_optional_education_generalization():
     print("\n" + "=" * 80)
     print(">>> EXECUTING PRIORITY 5: CROSS-ATTRIBUTE GENERALIZATION (Education_Binary)")
@@ -422,9 +407,6 @@ def run_optional_education_generalization():
     print(df_edu.to_string(index=False))
     return df_edu
 
-# -----------------------------------------------------------------------------
-# MASTER REPORT COMPILER
-# -----------------------------------------------------------------------------
 def generate_master_q1_markdown_report(df_abl, df_base, df_sweep, df_seeds, df_edu):
     report_path = os.path.join(RESULTS_DIR, "empirical_campaign_summary.md")
     print(f"\n>>> Compiling Campaign Summary Markdown Report to: {report_path}")
@@ -466,11 +448,11 @@ def main():
     print("STARTING COMPLETE Q1 ELSEVIER EMPIRICAL CAMPAIGN (PURE STRUCTURAL FAIRNESS)")
     print("=" * 80)
     
-    # 1. Load Primary Dataset (Income_Binary)
+
     print("Loading 100% Real CDC BRFSS Dataset (Income_Binary)...")
     X, y, s = load_data(file_path=None, n_samples=None, random_state=42, protected_attr='Income_Binary')
     
-    # Primary Split (Seed 42)
+
     X_temp, X_test, y_temp, y_test, s_temp, s_test = train_test_split(
         X, y, s, test_size=0.20, random_state=42, stratify=y
     )
@@ -478,25 +460,25 @@ def main():
         X_temp, y_temp, s_temp, test_size=0.15/0.80, random_state=42, stratify=y_temp
     )
     
-    # Run Priority 1: Search Strategy Benchmark
+
     df_abl = run_priority1_search_benchmark(X_train, y_train, s_train, X_val, y_val, s_val, X_test, y_test, s_test)
     
-    # Run Priority 2: Structural Baselines
+
     df_base = run_priority2_structural_baselines(X_train, y_train, s_train, X_val, y_val, s_val, X_test, y_test, s_test)
     
-    # Run Priority 3: Lambda Sweep
+
     df_sweep = run_priority3_lambda_sweep(X_train, y_train, s_train, X_val, y_val, s_val, X_test, y_test, s_test)
     
-    # Run Priority 4: 5-Seed Stability
+
     df_seeds = run_priority4_multiseed_stability(X, y, s)
     
-    # Run Priority 5: Education Attribute
+
     df_edu = run_optional_education_generalization()
     
-    # Compile Master Report
+
     generate_master_q1_markdown_report(df_abl, df_base, df_sweep, df_seeds, df_edu)
     
-    # Generate Publication Figures (300 DPI)
+
     print("\n>>> Generating 300 DPI Publication Figures...")
     try:
         import generate_q1_publication_figures

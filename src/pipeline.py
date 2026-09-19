@@ -66,7 +66,6 @@ class ClusterThenPredictPipeline:
         self.random_state = random_state
         self.calibrated_base_threshold = 0.5
 
-        # Pipeline components
         self.preprocessor = DataPreprocessor(scale_features=True)
         self.clusterer = PopulationClusterer(
             n_clusters=n_clusters, 
@@ -110,14 +109,13 @@ class ClusterThenPredictPipeline:
         """
         Fits the multi-stage pipeline on training data.
         """
-        # Step 1: Preprocessing & Re-weighing
+
         X_tr_proc = self.preprocessor.fit_transform(X_train)
         
         sample_weights = None
         if self.apply_pre:
             sample_weights = self.preprocessor.compute_reweighing_weights(s_train, y_train)
 
-        # Step 2: Stage 1 Clustering (Static or Adaptive)
         train_clusters = self.clusterer.fit_predict(
             X_tr_proc, 
             s=s_train, 
@@ -129,11 +127,10 @@ class ClusterThenPredictPipeline:
             train_clusters, s_train, y_train
         )
         
-        # Synchronize dynamic cluster count if adaptive clustering was active
+
         actual_k = self.clusterer.n_clusters
         self.classifier_manager.n_clusters = actual_k
 
-        # Validation processing for calibration
         X_v_proc = None
         val_clusters = None
         val_resp = None
@@ -142,7 +139,6 @@ class ClusterThenPredictPipeline:
             val_clusters = self.clusterer.predict(X_v_proc)
             val_resp = self.clusterer.predict_proba(X_v_proc)
 
-        # Step 3: Stage 2 Cluster Classifiers (Global Residual Mixture of Experts)
         self.classifier_manager.fit(
             X=X_tr_proc,
             y=y_train,
@@ -155,7 +151,6 @@ class ClusterThenPredictPipeline:
             val_cluster_responsibilities=val_resp
         )
 
-        # Step 4: Decision threshold calibration & Post-Processing (ROC)
         if X_v_proc is not None and y_val is not None:
             val_proba = self.classifier_manager.predict_proba(
                 X_v_proc, 

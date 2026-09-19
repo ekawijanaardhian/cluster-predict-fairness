@@ -73,7 +73,7 @@ class PopulationClusterer:
         Evaluates candidate K values and methods to find optimal cluster configuration.
         Balances cluster separation (Davies-Bouldin Index) and demographic disparity across clusters.
         """
-        # Subsample for fast evaluation if dataset is very large
+
         n_eval = min(len(X), 15000)
         if len(X) > n_eval:
             eval_idx = np.random.RandomState(self.random_state).choice(len(X), size=n_eval, replace=False)
@@ -89,7 +89,7 @@ class PopulationClusterer:
         selected_k = self.n_clusters
         selected_method = 'kmeans'
         
-        # In adaptive mode, evaluate all candidate algorithms unless explicitly locked
+
         if self.method == 'auto' or self.adaptive:
             candidate_methods = ['kmeans', 'minibatch', 'gmm']
         else:
@@ -114,22 +114,19 @@ class PopulationClusterer:
 
                     labels = cand_model.predict(X_eval)
                     
-                    # Ensure valid cluster distribution
+
                     if len(np.unique(labels)) < 2:
                         continue
 
-                    # Geometric quality metrics
                     db_score = davies_bouldin_score(X_eval, labels)
                     ch_score = calinski_harabasz_score(X_eval, labels)
 
-                    # Demographic skew across clusters
                     demo_disparity = 0.0
                     if s_eval is not None:
                         cluster_s_means = [np.mean(s_eval[labels == c]) for c in range(k) if np.sum(labels == c) > 0]
                         if len(cluster_s_means) > 1:
                             demo_disparity = float(np.std(cluster_s_means))
 
-                    # Composite criterion: Lower DB score is better, lower demo disparity is better
                     composite_score = db_score + (self.fairness_penalty_weight * demo_disparity)
 
                     self.search_history_.append({
@@ -194,27 +191,26 @@ class PopulationClusterer:
             return self.model.predict_proba(X)
         
         if hasattr(self.model, 'cluster_centers_'):
-            # KMeans / MiniBatch: calculate distance to each centroid
+
             centers = self.model.cluster_centers_
             X_arr = np.asarray(X)
-            # Compute squared Euclidean distances: (N, K)
-            # (x - c)^2 = x^2 - 2xc + c^2
+
             dists = np.zeros((len(X_arr), self.n_clusters), dtype=np.float64)
             for k in range(self.n_clusters):
                 dists[:, k] = np.sum((X_arr - centers[k]) ** 2, axis=1)
             
-            # Dynamic bandwidth sigma based on median distance
+
             median_dist = np.median(dists) + 1e-6
             gamma = 1.0 / (median_dist * temperature)
             
-            # Softmax with numerical stability
+
             scaled_neg_dist = -gamma * dists
             scaled_neg_dist -= np.max(scaled_neg_dist, axis=1, keepdims=True)
             exp_dists = np.exp(scaled_neg_dist)
             weights = exp_dists / np.sum(exp_dists, axis=1, keepdims=True)
             return weights
         
-        # Fallback: one-hot hard assignments
+
         labels = self.predict(X)
         one_hot = np.zeros((len(X), self.n_clusters), dtype=np.float64)
         for k in range(self.n_clusters):
@@ -248,7 +244,7 @@ class PopulationClusterer:
                 continue
             priv_rate = c_data['Protected_Privileged'].mean()
             target_rate = c_data['Diabetes_Target'].mean()
-            # Demographic representation ratio relative to overall
+
             rep_ratio = (priv_rate / (overall_priv_rate + 1e-9))
             
             summary.append({
