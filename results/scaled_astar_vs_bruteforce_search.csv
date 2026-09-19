@@ -1,0 +1,2 @@
+Search_Strategy,Total_Design_Space,Evaluated_Pipelines,Search_Space_Reduction_Pct,Search_Time_Sec,Synthesized_K,Synthesized_Clustering,Synthesized_Classifier,Goal_f_cost,Validation_AUC,Validation_DPD
+Informed_A_Star_Search,105,3,97.14,145.53,5,minibatch,rf,0.4505,0.825,0.2681

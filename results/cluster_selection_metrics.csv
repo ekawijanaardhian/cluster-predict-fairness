@@ -1,0 +1,10 @@
+Method,K,Davies_Bouldin,Calinski_Harabasz,Demographic_Std,Composite_Score,Selection_Status
+kmeans,2,0.9064,9777.9,0.153,0.9829,SELECTED (Optimal K)
+kmeans,3,0.9529,8672.4,0.1269,1.0163,Rejected (Higher Cost)
+kmeans,4,1.1011,8531.9,0.1301,1.1661,Rejected (Higher Cost)
+kmeans,5,1.0115,8428.1,0.1537,1.0883,Rejected (Higher Cost)
+kmeans,6,1.1206,7845.3,0.148,1.1946,Rejected (Higher Cost)
+kmeans,7,1.1053,7360.4,0.14,1.1753,Rejected (Higher Cost)
+kmeans,8,1.1529,7002.7,0.1465,1.2262,Rejected (Higher Cost)
+kmeans,9,1.1381,6599.6,0.1588,1.2175,Rejected (Higher Cost)
+kmeans,10,1.1358,6432.2,0.1521,1.2119,Rejected (Higher Cost)

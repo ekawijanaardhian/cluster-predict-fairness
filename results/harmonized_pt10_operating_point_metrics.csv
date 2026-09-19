@@ -1,0 +1,7 @@
+Accuracy,Balanced_Acc,DPD,DPR,EOD,TPR_Priv,TPR_Unpriv,FPR_Priv,FPR_Unpriv,Net_Benefit,Architecture,Operating_Point,AUC
+65.69,74.5,0.2842,0.573,0.262,0.827,0.9363,0.3241,0.5861,0.0847,Single_LightGBM,Clinical_pt_0.10,0.8263
+64.82,73.86,0.1386,0.7528,0.1036,0.8593,0.8714,0.3657,0.4693,0.0834,PreProcessing_Reweighing,Clinical_pt_0.10,0.8162
+86.49,55.64,0.0118,0.7098,0.0252,0.138,0.1127,0.015,0.0197,0.0164,InProcessing_ExpGrad_DP,Clinical_pt_0.10,0.5564
+33.65,60.8,0.1019,0.8838,0.0974,0.9844,0.9842,0.7486,0.8461,0.0637,v1_Hard_Cluster,Clinical_pt_0.10,0.7022
+65.15,74.45,0.2952,0.5667,0.2754,0.8323,0.9444,0.3288,0.6042,0.0849,v2_Hierarchical_MoE,Clinical_pt_0.10,0.8261
+67.8,71.39,0.047,0.8912,0.0036,0.7624,0.766,0.3364,0.3339,0.0743,"PostProcessing_ThresholdOptimizer (EO, BalAcc)",Discrete_PostProc_Policy,0.8263

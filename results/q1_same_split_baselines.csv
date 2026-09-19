@@ -1,0 +1,8 @@
+Architecture_Configuration,Cluster_Count_K,Clustering_Method,Classifier_Family,Val_AUC,Val_DPD,Val_EOD,g_cost_lambda_1.0,g_cost_lambda_2.0,Test_AUC,Test_Accuracy,Test_Balanced_Acc,Test_DPD,Test_DPR,Test_EOD
+1_Single_Model_Logistic (K=1),1,kmeans,logistic,0.8206,0.3029,0.2775,0.4827,0.7856,0.8197,70.98,74.79,0.3063,0.499,0.2768
+2_Single_Model_LightGBM (K=1),1,kmeans,lightgbm,0.8273,0.3014,0.276,0.4748,0.7762,0.8263,71.04,75.2,0.2993,0.5076,0.2694
+3_Single_Model_XGBoost (K=1),1,kmeans,xgboost,0.8271,0.2843,0.2529,0.4581,0.7424,0.8262,73.41,75.05,0.2881,0.4903,0.2511
+"4_Homogeneous_Cluster_Predict (K=2, LightGBM)",2,kmeans,lightgbm,0.8268,0.2964,0.2673,0.4714,0.7678,0.8261,72.54,75.18,0.2957,0.4938,0.2622
+"5_Homogeneous_Cluster_Predict (K=4, LightGBM)",4,kmeans,lightgbm,0.826,0.2975,0.2712,0.474,0.7715,0.8256,71.42,75.25,0.2966,0.5063,0.2657
+6_Adaptive_Heterogeneous_Cluster_Predict (Optimal),2,kmeans,lightgbm,0.8268,0.2964,0.2673,0.4715,0.7679,0.8261,72.54,75.18,0.2957,0.4938,0.2622
+7_Full_Adaptive_AutoClustering_Heterogeneous,8,auto,adaptive,0.8265,0.2858,0.2528,0.4689,0.7547,0.8263,73.84,75.06,0.2896,0.4834,0.2531

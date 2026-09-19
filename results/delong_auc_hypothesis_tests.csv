@@ -1,0 +1,6 @@
+Comparison,Delta_AUC_Plugin,DeLong_Z,DeLong_P_Value,Bootstrap_P_Value,Bootstrap_95CI
+v2_minus_Single_LightGBM,-0.0003,-0.8426,0.399433,0.405,"[-0.0010, +0.0004]"
+v1_minus_Single_LightGBM,-0.1241,-42.114,0.0,0.0005,"[-0.1294, -0.1186]"
+v2_minus_v1,0.1238,42.0084,0.0,0.0005,"[+0.1183, +0.1291]"
+Reweighing_minus_Single_LightGBM,-0.0101,-12.9951,0.0,0.0005,"[-0.0110, -0.0093]"
+Reweighing_minus_v2,-0.0098,-11.571,0.0,0.0005,"[-0.0109, -0.0087]"

@@ -1,0 +1,3 @@
+Protected_Attribute,Lambda_Fairness,Synthesized_Clustering,Synthesized_K,Synthesized_Classifier,Test_AUC,Test_Accuracy,Test_DPD,Test_EOD
+Education_Binary,1.0,kmeans,6,lightgbm,0.8263,69.94,0.2995,0.2849
+Education_Binary,2.0,kmeans,6,lightgbm,0.8263,69.94,0.2995,0.2849

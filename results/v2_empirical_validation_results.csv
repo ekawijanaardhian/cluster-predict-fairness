@@ -1,0 +1,9 @@
+Architecture_Configuration,Cluster_K,Clustering_Method,Global_Base_Residual,Soft_Assignment,Cluster_Calibration,Val_AUC,Val_DPD,Val_EOD,Test_AUC,Test_Accuracy,Test_Balanced_Acc,Test_DPD,Test_DPR,Test_EOD,Min_TPR,TPR_Privileged,TPR_Unprivileged,Net_Benefit_pt10,Net_Benefit_pt15,Execution_Time_Sec
+1_Single_Model_LightGBM (K=1),1,kmeans,False,False,False,0.8273,0.3014,0.276,0.8263,71.04,75.2,0.2993,0.5076,0.2694,0.7544,0.7544,0.905,0.075,0.0439,2.87
+2_Single_Model_Logistic (K=1),1,kmeans,False,False,False,0.8206,0.3029,0.2775,0.8197,70.98,74.79,0.3063,0.499,0.2768,0.7415,0.7415,0.9031,0.0686,0.0369,0.54
+"3_v1_Hard_Cluster_Predict (K=2, Fragmented_Data)",2,kmeans,False,False,False,0.7037,0.0164,0.0751,0.7022,52.02,65.47,0.0324,0.946,0.0546,0.8066,0.8611,0.8066,0.0702,0.037,1.54
+"4_v2_Hierarchical_MoE (K=2, Global+Residual, Soft+Calib)",2,kmeans,True,True,True,0.8268,0.2964,0.2673,0.8261,72.54,75.18,0.2957,0.4938,0.2622,0.729,0.729,0.8915,0.0891,0.0698,1.9
+"5_v2_Hierarchical_MoE_ParityShift (K=2, Intercept_Aligned)",2,kmeans,True,True,True,0.8268,0.2964,0.2673,0.8261,72.54,75.18,0.2957,0.4938,0.2622,0.729,0.729,0.8915,0.0891,0.0698,1.77
+"6_v2_Hierarchical_MoE (K=4, Global+Residual, Soft+Calib)",4,kmeans,True,True,True,0.826,0.2975,0.2712,0.8256,71.42,75.25,0.2966,0.5063,0.2657,0.7502,0.7502,0.9015,0.0888,0.0701,2.32
+"7_v2_Hierarchical_MoE_GMM (K=2, GMM_Posterior, Soft+Calib)",2,gmm,True,True,True,0.8266,0.2899,0.2618,0.8255,71.8,75.21,0.2932,0.5053,0.2615,0.7439,0.7439,0.8954,0.0887,0.0698,2.83
+8_v2_A_Star_Synthesized_MoE,2,gmm,True,True,True,0.8266,0.2899,0.2618,0.8255,71.8,75.21,0.2932,0.5053,0.2615,0.7439,0.7439,0.8954,0.0887,0.0698,3.99

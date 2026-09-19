@@ -1,0 +1,7 @@
+K_Setting,Cluster_ID,N_Train,N_Test,Target_Prevalence,Pct_Low_Income,Pct_Low_Education,Per_Cluster_AUC,Per_Cluster_Brier
+K=2,Cluster_0,43526,13425,0.3056,53.29,14.88,0.7087,0.1876
+K=2,Cluster_1,121366,37311,0.0797,11.88,2.04,0.8115,0.1795
+K=4,Cluster_0,7941,2469,0.1103,47.73,14.76,0.8308,0.1416
+K=4,Cluster_1,73056,22479,0.0309,8.89,1.2,0.7685,0.1739
+K=4,Cluster_2,57778,17794,0.1951,21.56,5.43,0.7115,0.2133
+K=4,Cluster_3,26117,7994,0.328,56.93,14.41,0.7209,0.1898

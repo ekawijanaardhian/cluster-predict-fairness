@@ -1,0 +1,3 @@
+Search_Strategy,Search_Paradigm,Evaluated_Pipelines,Search_Time_Sec,Goal_f_cost,Goal_g_cost,Synthesized_Clustering,Synthesized_K,Synthesized_Classifier,Test_AUC,Test_Accuracy,Test_Balanced_Acc,Test_DPD,Test_DPR,Test_EOD
+A_Star_Heuristic_Guided,Informed_A_Star,3,74.73,0.4702,0.4702,auto,6,adaptive,0.8263,73.84,75.06,0.2896,0.4834,0.2531
+Brute_Force_Exhaustive_Grid,Exhaustive_Enumeration,18,125.69,0.4688,0.4688,auto,6,adaptive,0.8263,73.84,75.06,0.2896,0.4834,0.2531
