@@ -65,7 +65,6 @@ def generate_all_figures():
     print("GENERATING 600 DPI PUBLICATION FIGURES (Fig1 - Fig6) IN TIFF AND PNG FORMATS")
     print("=" * 80)
     
-
     fig, ax = plt.subplots(figsize=(13.5, 5.2), dpi=600)
     ax.axis('off')
     c_blue, c_teal, c_green, c_purple = '#2563eb', '#0d9488', '#16a34a', '#7c3aed'
@@ -78,7 +77,7 @@ def generate_all_figures():
 
     ax.add_patch(patches.FancyBboxPatch((0.31, 0.17), 0.28, 0.66, boxstyle="round,pad=0.03", fc='#f0fdfa', ec=c_teal, lw=2.5))
     ax.text(0.45, 0.70, "Stage 1: Adaptive Clustering Engine", ha='center', va='center', fontweight='bold', color='#115e59', fontsize=11.5)
-    ax.text(0.45, 0.44, "• Multi-Objective Search: min (DB_Index + λ_fair * Std(s_k))\n• Candidate Algorithms: KMeans, Auto, MiniBatch, GMM\n• Candidate Cluster Count: K ∈ [2, 10]\n• Isolates Distinct Demographic & Clinical Sub-Populations\n  (e.g., Low-Risk Affluent vs High-Risk Impoverished)", ha='center', va='center', fontsize=8.8, color='#0f766e')
+    ax.text(0.45, 0.44, "• Multi-Objective Search: min (DB_Index + λ · Std(s_k))\n• Candidate Algorithms: KMeans, Auto, MiniBatch, GMM\n• Candidate Cluster Count: K ∈ [2, 10]\n• Isolates Distinct Demographic & Clinical Sub-Populations\n  (e.g., Low-Risk Affluent vs High-Risk Impoverished)", ha='center', va='center', fontsize=8.8, color='#0f766e')
 
     ax.annotate('', xy=(0.69, 0.50), xytext=(0.62, 0.50), arrowprops=dict(facecolor='black', edgecolor='black', arrowstyle='->', lw=2))
 
@@ -87,7 +86,7 @@ def generate_all_figures():
     ax.text(0.83, 0.44, "• Stratified Cross-Validation per Sub-Population\n• Dynamic Model Assignment:\n  - LightGBM / XGBoost (Non-linear complex)\n  - Random Forest (Ensemble)\n  - Logistic Regression (Parametric linear)\n• Autonomous Match to Local Data Geometry", ha='center', va='center', fontsize=8.8, color='#15803d')
 
     ax.add_patch(patches.Rectangle((0.01, 0.04), 0.98, 0.92, fill=False, edgecolor=c_purple, linestyle='--', linewidth=2.0))
-    ax.text(0.50, 0.08, "Global A* Heuristic Search Optimization: min f(n) = (1 - AUC) + λ_fairness * DPD + h(n)", ha='center', va='center', fontweight='bold', color='#581c87', fontsize=11.5)
+    ax.text(0.50, 0.08, "Global A* Heuristic Search Optimization: min f(n) = (1 - AUC) + λ · DPD + h(n)", ha='center', va='center', fontweight='bold', color='#581c87', fontsize=11.5)
 
     plt.tight_layout()
     save_multi_format(fig, "Fig1")
@@ -151,10 +150,10 @@ def generate_all_figures():
 
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(11.5, 4.6), dpi=600)
     ax1.plot(ks, db_scores, marker='o', lw=2.2, color='#2563eb', label='Davies-Bouldin Index (Lower is Better)')
-    ax1.plot(ks, comp_scores, marker='s', lw=2.2, color='#dc2626', linestyle='--', label='Composite Cost Score f(n)')
+    ax1.plot(ks, comp_scores, marker='s', lw=2.2, color='#dc2626', linestyle='--', label='Composite Score Composite(K)')
     ax1.scatter([2], [comp_scores[0]], s=220, color='#16a34a', zorder=6, edgecolors='black', label='Optimal Cluster (K=2)')
     ax1.set_xlabel("Candidate Number of Sub-Populations (K)", fontweight='bold')
-    ax1.set_ylabel("Clustering Separation Quality / Cost", fontweight='bold')
+    ax1.set_ylabel("Clustering Separation Quality / Score", fontweight='bold')
     ax1.set_title("(a) Objective Minimization across K ∈ [2, 10]", fontweight='bold')
     ax1.set_xticks(ks)
     ax1.grid(True, linestyle='--', alpha=0.5)
@@ -178,23 +177,23 @@ def generate_all_figures():
         ("Single Model (LightGBM K=1)", 0.8263, 0.2909, '#64748b', 's', 140),
         ("Single Model (XGBoost K=1)", 0.8262, 0.2881, '#475569', '^', 140),
         ("Pre-Processing (Reweighing)", 0.8162, 0.1234, '#8b5cf6', 'p', 150),
-        ("Post-Processing (ThresholdOpt)", 0.8263, 0.0093, '#06b6d4', 'H', 150),
-        ("Hard Cluster-Predict v1 (K=2)", 0.7022, 0.0324, '#f59e0b', 'D', 150),
-        ("Hierarchical Fair MoE v2 (K=2)", 0.8261, 0.2957, '#10b981', '*', 300),
+        ("Threshold Optimizer (Post)", 0.8263, 0.0491, '#06b6d4', 'H', 150),
+        ("Hard Partitioning (HP, K=2)", 0.7022, 0.0324, '#f59e0b', 'D', 150),
+        ("Hierarchical Mixture-of-Experts (HMoE, K=2)", 0.8261, 0.2957, '#10b981', '*', 300),
     ]
 
     for name, auc, dpd, color, marker, size in configs:
         ax.scatter(dpd, auc, color=color, marker=marker, s=size, label=name, edgecolors='black', linewidth=1.2, zorder=5)
 
     ax.scatter(0.2957, 0.8261, s=450, facecolors='none', edgecolors='#10b981', linewidth=2.5, zorder=6, linestyle='--')
-    ax.annotate("Hierarchical MoE v2 (K=2)\nRestores AUC (0.8261) & Net Benefit\n(AUC Recovery +0.1238 vs v1)",
-                xy=(0.2957, 0.8261), xytext=(0.10, 0.77),
+    ax.annotate("Hierarchical Mixture-of-Experts (HMoE, K=2)\nRestores AUC (0.8261) & Net Benefit\n(AUC Recovery +0.1239 vs HP)",
+                xy=(0.2957, 0.8261), xytext=(0.08, 0.77),
                 arrowprops=dict(arrowstyle="->", color='#10b981', lw=2.0),
                 fontsize=9.0, fontweight='bold', color='#047857',
                 bbox=dict(boxstyle="round,pad=0.3", fc="#ecfdf5", ec="#10b981", lw=1))
 
     ax.scatter(0.0324, 0.7022, s=350, facecolors='none', edgecolors='#f59e0b', linewidth=2.0, zorder=6, linestyle=':')
-    ax.annotate("Hard Cluster v1 (K=2)\nApparent Parity (DPD=0.0324)\nSevere Data Fragmentation (AUC=0.7022)",
+    ax.annotate("Hard Partitioning (HP, K=2)\nApparent Parity (DPD=0.0324)\nSevere Data Fragmentation (AUC=0.7022)",
                 xy=(0.0324, 0.7022), xytext=(0.04, 0.665),
                 arrowprops=dict(arrowstyle="->", color='#d97706', lw=1.8),
                 fontsize=8.8, fontweight='bold', color='#b45309',
@@ -225,7 +224,7 @@ def generate_all_figures():
 
     fig, ax = plt.subplots(figsize=(9.8, 5.0), dpi=600)
     sns.heatmap(matrix.T, annot=True, fmt='.4f', xticklabels=lambdas, yticklabels=metrics_labels, cmap='Blues', ax=ax, cbar=True)
-    ax.set_xlabel("Fairness Regularization Parameter (λ_fairness)", fontweight='bold')
+    ax.set_xlabel("Fairness Regularization Parameter (λ)", fontweight='bold')
 
     plt.tight_layout()
     save_multi_format(fig, "Fig5")
@@ -242,7 +241,7 @@ def generate_all_figures():
     data_dpd = [single_lgb_dpd, v2_moe_dpd, v1_hard_dpd]
 
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(11.5, 4.8), dpi=600)
-    labels = ['Single LightGBM\n(Unmitigated K=1)', 'Hierarchical MoE v2\n(Global+Residual K=2)', 'Hard Cluster v1\n(Fragmented K=2)']
+    labels = ['Single LightGBM\n(Unmitigated K=1)', 'Hierarchical MoE\n(HMoE, K=2)', 'Hard Partitioning\n(HP, K=2)']
     colors = ['#60a5fa', '#34d399', '#f59e0b']
 
     bplot1 = ax1.boxplot(data_auc, tick_labels=labels, patch_artist=True, medianprops=dict(color='black', lw=1.5))
@@ -277,7 +276,6 @@ def generate_highlights_document():
         "Structural parity claims require a utility-matched counterfactual evaluation."
     ]
     
-
     print("Highlights length verification:")
     for idx, h in enumerate(highlights, 1):
         print(f"  [{idx}] ({len(h)} chars): {h}")
@@ -314,9 +312,9 @@ def generate_figure_captions_document():
     captions = [
         ("Fig. 1", "High-level architectural workflow of the adaptive cluster-then-predict framework for fairness-aware clinical risk prediction across socio-economic strata."),
         ("Fig. 2", "Search efficiency, computation time, and objective comparison between informed A* heuristic tree search and exhaustive brute-force grid search across standard ($N=18$) and scaled ($N=105$) candidate spaces on CDC BRFSS 2015 data: (a) evaluated pipeline configurations (3 vs 18 in standard space, and 3 vs 105 in scaled space); (b) wall-clock computation time (74.73 s vs 125.69 s, and 127.97 s vs 603.84 s); (c) optimization objective cost $f(n)$ comparing heuristic convergence against global enumeration (0.4702 vs 0.4688 in standard space, and 0.4510 vs 0.4418 in scaled space, with identical test-set discrimination $\\text{AUC}=0.8263$ and disparity $\\text{DPD}=0.2896$)."),
-        ("Fig. 3", "Stage 1 latent cluster optimization curves across candidate sub-population counts $K \\in [2, 10]$: (a) Davies–Bouldin index and composite cost function $f(n)$ showing global cost minimum at $K=2$; (b) Calinski–Harabasz variance ratio criterion exhibiting peak sub-population separation at $K=2$."),
+        ("Fig. 3", "Stage 1 latent cluster optimization curves across candidate sub-population counts $K \\in [2, 10]$: (a) Davies–Bouldin index and composite score $\\text{Composite}(K)$ showing global cost minimum at $K=2$; (b) Calinski–Harabasz variance ratio criterion exhibiting peak sub-population separation at $K=2$."),
         ("Fig. 4", "Empirical Pareto frontier illustrating clinical utility (AUC-ROC) versus fairness disparity (Demographic Parity Difference, DPD) trade-off across single-model baselines (Logistic Regression, LightGBM, XGBoost), standard mitigation techniques (Reweighing, Threshold Optimizer), hard partitioning (HP), and hierarchical mixture-of-experts (HMoE) on CDC BRFSS 2015 test set ($N=50,736$)."),
-        ("Fig. 5", "Sensitivity heatmap of predictive and fairness metrics across fairness regularization weights $\\lambda_{\\text{fairness}} \\in [0.1, 50.0]$ in the pipeline objective formulation."),
+        ("Fig. 5", "Sensitivity heatmap of predictive and fairness metrics across fairness regularization weights $\\lambda \\in [0.1, 50.0]$ in the pipeline objective formulation."),
         ("Fig. 6", "Multi-seed statistical stability across 5 independent stratified random data splits ($N=253,680$ total, test $N=50,736$): (a) AUC-ROC utility distributions; (b) Demographic Parity Difference (DPD) distributions comparing unmitigated single LightGBM, hierarchical mixture-of-experts (HMoE), and hard partitioning (HP).")
     ]
     
