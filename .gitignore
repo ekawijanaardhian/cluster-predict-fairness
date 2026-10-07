@@ -22,3 +22,6 @@ Thumbs.db
 # Scratch and log files
 *.log
 scratch/
+
+# Legacy/uncalibrated experiment artifacts (superseded by bootstrap_estimates.csv & bootstrap_deltas.csv)
+results/statistical_bootstrap_inference.csv

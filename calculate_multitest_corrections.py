@@ -1,13 +1,24 @@
 import pandas as pd
 import numpy as np
-df_boot = pd.read_csv('results/statistical_bootstrap_inference.csv')
-deltas = df_boot[df_boot['Architecture'].str.startswith('Delta_')].copy()
+# Load empirical bootstrap results from standardized protocol (B=2,000, 4-strata paired, Youden-J)
+df_deltas = pd.read_csv('results/bootstrap_deltas.csv')
+
+# Primary architectural comparisons and metrics matching the manuscript (M=12 comparisons)
+target_pairs = ['v2_minus_Single_LightGBM', 'v1_minus_Single_LightGBM', 'v2_minus_v1']
+target_metrics = ['AUC', 'DPD', 'EOD', 'NetBenefit_pt10']
+
+deltas = df_deltas[df_deltas['Comparison'].isin(target_pairs) & df_deltas['Metric'].isin(target_metrics)].copy()
+
 records = []
 for idx, row in deltas.iterrows():
-    raw_str = row['Formatted_95CI']
-    p_str = raw_str.split('(p=')[1].replace(')', '')
-    p_val = float(p_str)
-    records.append({'Architecture': row['Architecture'], 'Metric': row['Metric'], 'Point_Estimate': row['Point_Estimate'], 'CI_Lower': row['CI_Lower'], 'CI_Upper': row['CI_Upper'], 'Raw_P_Value': p_val})
+    records.append({
+        'Architecture': row['Comparison'],
+        'Metric': row['Metric'],
+        'Point_Estimate': row['Plugin_Delta'],
+        'CI_Lower': row['CI_Lower'],
+        'CI_Upper': row['CI_Upper'],
+        'Raw_P_Value': float(row['P_Value'])
+    })
 df_res = pd.DataFrame(records)
 m = len(df_res)
 df_res = df_res.sort_values(by='Raw_P_Value').reset_index(drop=True)

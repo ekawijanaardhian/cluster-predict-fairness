@@ -73,11 +73,13 @@ python run_rigorous_empirical_suite.py
 ```
 
 ### 2. Bootstrap Statistical Inference
+Runs the standardized $B=2,000$ stratified paired bootstrap protocol (fixed random seed = 42 for exact replication), generating `results/bootstrap_estimates.csv` and `results/bootstrap_deltas.csv`:
 ```bash
 python run_standardized_bootstrap_protocol.py
 ```
 
 ### 3. Multiple Testing Corrections
+Applies Holm step-down and Benjamini-Hochberg FDR adjustments to the empirical bootstrap and DeLong test p-values:
 ```bash
 python calculate_multitest_corrections.py
 ```
