@@ -145,9 +145,6 @@ def run_experiment_1_mitigation_baselines(X_train, y_train, s_train, X_val, y_va
     nb7_15 = float(dca7[np.isclose(dca7['Threshold_pt'], 0.15, atol=0.01)]['Net_Benefit_Model'].iloc[0])
     results.append({'Method': '7_v2_Hierarchical_Fair_MoE_K2', 'Test_AUC': m7['AUC_ROC'], 'Test_Accuracy': m7['Accuracy'] * 100, 'Test_Balanced_Acc': m7['Balanced_Accuracy'] * 100, 'Test_DPD': m7['Demographic_Parity_Diff'], 'Test_DPR': m7['Demographic_Parity_Ratio'], 'Test_EOD': m7['Equalized_Odds_Diff'], 'TPR_Privileged': m7['TPR_Privileged'], 'TPR_Unprivileged': m7['TPR_Unprivileged'], 'Net_Benefit_pt10': round(nb7_10, 4), 'Net_Benefit_pt15': round(nb7_15, 4), 'Fit_Time_Sec': round(t_v2, 2), 'Requires_Attribute_At_Inference': False})
     df_res1 = pd.DataFrame(results)
-    out_path = os.path.join(RESULTS_DIR, 'benchmark_mitigation_baselines.csv')
-    df_res1.to_csv(out_path, index=False)
-    print(f'\n[Saved] Mitigation baselines table saved to: {out_path}')
     print(df_res1[['Method', 'Test_AUC', 'Test_DPD', 'Test_EOD', 'TPR_Privileged', 'TPR_Unprivileged', 'Net_Benefit_pt10', 'Requires_Attribute_At_Inference']].to_string(index=False))
     return (df_res1, (p_single_te, p_v1_te, p_v2_te))
 
@@ -253,9 +250,6 @@ def run_experiment_3_bootstrap_inference(y_test, s_test, pred_dict, proba_dict, 
                 p_val = float(np.mean(diff_vals <= 0) if pe > 0 else np.mean(diff_vals >= 0)) * 2
                 summary_rows.append({'Architecture': diff_name, 'Metric': metric, 'Point_Estimate': round(pe, 4), 'CI_Lower': round(ci_low, 4), 'CI_Upper': round(ci_high, 4), 'Formatted_95CI': f'{pe:+.4f} [{ci_low:+.4f}, {ci_high:+.4f}] (p={min(1.0, p_val):.4f})'})
     df_boot = pd.DataFrame(summary_rows)
-    out_path = os.path.join(RESULTS_DIR, 'statistical_bootstrap_inference.csv')
-    df_boot.to_csv(out_path, index=False)
-    print(f'\n[Saved] Statistical bootstrap inference table saved to: {out_path}')
     print(df_boot.to_string(index=False))
     return df_boot
 
@@ -328,9 +322,6 @@ def run_experiment_6_scaled_astar_search(X_train, y_train, s_train, X_val, y_val
     time_astar = time.time() - t0
     print(f'A* Search finished in {time_astar:.2f}s | Evaluated: {len(traj_df_astar)} nodes | Optimal Cost: {best_node_astar.f_cost:.4f}')
     df_search_summary = pd.DataFrame([{'Search_Strategy': 'Informed_A_Star_Search', 'Total_Design_Space': total_space, 'Evaluated_Pipelines': len(traj_df_astar), 'Search_Space_Reduction_Pct': round((1.0 - len(traj_df_astar) / total_space) * 100, 2), 'Search_Time_Sec': round(time_astar, 2), 'Synthesized_K': best_node_astar.config.get('n_clusters'), 'Synthesized_Clustering': best_node_astar.config.get('clustering_method'), 'Synthesized_Classifier': best_node_astar.config.get('classifier_type'), 'Goal_f_cost': round(best_node_astar.f_cost, 4), 'Validation_AUC': round(best_node_astar.metrics.get('AUC_ROC', 0), 4), 'Validation_DPD': round(best_node_astar.metrics.get('Demographic_Parity_Diff', 0), 4)}])
-    out_path = os.path.join(RESULTS_DIR, 'scaled_astar_vs_bruteforce_search.csv')
-    df_search_summary.to_csv(out_path, index=False)
-    print(f'\n[Saved] Scaled search benchmark saved to: {out_path}')
     print(df_search_summary.to_string(index=False))
     return df_search_summary
 
@@ -363,14 +354,11 @@ def main():
     df_exp5 = run_experiment_5_full_decision_curves(y_test, proba_dict)
     df_exp6 = run_experiment_6_scaled_astar_search(X_train, y_train, s_train, X_val, y_val, s_val)
     print('\n' + '=' * 80)
-    print('ALL 6 RIGOROUS EMPIRICAL EXPERIMENTS COMPLETED SUCCESSFULLY!')
-    print(f"Generated CSV Artifacts in '{RESULTS_DIR}/':")
-    print(' 1. benchmark_mitigation_baselines.csv')
-    print(' 2. cluster_diagnostics_v1.csv')
-    print(' 3. statistical_bootstrap_inference.csv')
-    print(' 4. subgroup_calibration_brier_ece.csv')
-    print(' 5. full_decision_curve_analysis_dca.csv')
-    print(' 6. scaled_astar_vs_bruteforce_search.csv')
+    print('RIGOROUS EMPIRICAL SUITE COMPLETED!')
+    print(f"Active Validated CSV Artifacts in '{RESULTS_DIR}/':")
+    print(' 1. cluster_diagnostics_v1.csv')
+    print(' 2. subgroup_calibration_brier_ece.csv')
+    print(' 3. full_decision_curve_analysis_dca.csv')
     print('=' * 80)
 if __name__ == '__main__':
     main()

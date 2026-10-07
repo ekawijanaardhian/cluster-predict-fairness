@@ -1,3 +1,0 @@
-Search_Strategy,Search_Paradigm,Evaluated_Pipelines,Search_Time_Sec,Goal_f_cost,Goal_g_cost,Synthesized_Pre,Synthesized_Clustering,Synthesized_K,Test_AUC,Test_Accuracy,Test_DPD,Test_EOD,Synthesized_Classifier,Synthesized_InProc,Synthesized_PostProc
-A_Star_Heuristic_Guided,Informed_A_Star,3,59.01,0.4689,0.4689,False,kmeans,2,0.8264,70.26,0.2971,0.2676,,,
-Brute_Force_Exhaustive_Grid,Exhaustive_Enumeration,18,147.62,0.4679,0.4679,False,kmeans,2,0.8264,70.26,0.2971,0.2676,lightgbm,False,False

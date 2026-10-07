@@ -23,5 +23,8 @@ Thumbs.db
 *.log
 scratch/
 
-# Legacy/uncalibrated experiment artifacts (superseded by bootstrap_estimates.csv & bootstrap_deltas.csv)
+# Legacy/uncalibrated experiment artifacts (superseded by canonical CSVs)
 results/statistical_bootstrap_inference.csv
+results/benchmark_mitigation_baselines.csv
+results/q1_heuristic_ablation.csv
+results/scaled_astar_vs_bruteforce_search.csv

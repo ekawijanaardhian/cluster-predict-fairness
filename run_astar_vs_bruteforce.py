@@ -48,8 +48,6 @@ def main():
     m_bf = compute_all_metrics(y_test, preds_test_bf, proba_test_bf, s_test)
     records.append({'Search_Strategy': 'Brute_Force_Exhaustive_Grid', 'Search_Paradigm': 'Exhaustive_Enumeration', 'Evaluated_Pipelines': len(traj_bf), 'Search_Time_Sec': round(time_bf, 2), 'Goal_f_cost': round(best_node_bf.g_cost, 4), 'Goal_g_cost': round(best_node_bf.g_cost, 4), 'Synthesized_Pre': cfg_bf.get('apply_pre', False), 'Synthesized_Clustering': cfg_bf.get('clustering_method', 'kmeans'), 'Synthesized_K': cfg_bf.get('n_clusters', 2), 'Synthesized_Classifier': cfg_bf.get('classifier_type', 'lightgbm'), 'Synthesized_InProc': cfg_bf.get('apply_in', False), 'Synthesized_PostProc': cfg_bf.get('apply_post', False), 'Test_AUC': round(m_bf['AUC_ROC'], 4), 'Test_Accuracy': round(m_bf['Accuracy'] * 100, 2), 'Test_DPD': round(m_bf['Demographic_Parity_Diff'], 4), 'Test_EOD': round(m_bf['Equalized_Odds_Diff'], 4)})
     df_res = pd.DataFrame(records)
-    out_csv = os.path.join(RESULTS_DIR, 'q1_heuristic_ablation.csv')
-    df_res.to_csv(out_csv, index=False)
     print('\n' + '=' * 80)
     print('FINAL HEAD-TO-HEAD BENCHMARK: A* SEARCH VS BRUTE-FORCE EXHAUSTIVE SEARCH')
     print('=' * 80)

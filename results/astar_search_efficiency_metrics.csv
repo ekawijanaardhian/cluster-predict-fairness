@@ -1,5 +1,5 @@
 Search_Space,Space_Total_Configs,Search_Strategy,Evaluated_Pipelines,Search_Time_Sec,Goal_f_cost,Reduction_Pct,Speedup_Pct
 Standard_Space,18,A_Star_Search,3,74.73,0.4702,83.33,40.54
-Standard_Space,18,Brute_Force,18,125.69,0.4688,0.00,0.00
-Scaled_Space,105,A_Star_Search,3,127.97,0.4510,97.14,78.81
-Scaled_Space,105,Brute_Force,105,603.84,0.4418,0.00,0.00
+Standard_Space,18,Brute_Force,18,125.69,0.4688,0.0,0.0
+Scaled_Space,105,A_Star_Search,3,127.97,0.451,97.14,78.81
+Scaled_Space,105,Brute_Force,105,603.84,0.4418,0.0,0.0

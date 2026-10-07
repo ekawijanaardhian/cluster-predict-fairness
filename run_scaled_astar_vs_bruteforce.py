@@ -54,8 +54,6 @@ def main():
     m_te_bf = compute_all_metrics(y_test, pred_te_bf, p_te_bf, s_test)
     benchmark_records.append({'Search_Strategy': 'Brute_Force_Exhaustive_Grid', 'Search_Paradigm': 'Exhaustive_Enumeration', 'Total_Design_Space': total_space, 'Evaluated_Pipelines': len(traj_df_bf), 'Search_Space_Reduction_Pct': 0.0, 'Search_Time_Sec': round(time_bf, 2), 'Goal_f_cost': round(best_node_bf.g_cost, 4), 'Goal_g_cost': round(best_node_bf.g_cost, 4), 'Synthesized_K': opt_cfg_bf.get('n_clusters'), 'Synthesized_Clustering': opt_cfg_bf.get('clustering_method'), 'Synthesized_Classifier': opt_cfg_bf.get('classifier_type'), 'Test_AUC': m_te_bf['AUC_ROC'], 'Test_Accuracy': round(m_te_bf['Accuracy'] * 100, 2), 'Test_Balanced_Acc': round(m_te_bf['Balanced_Accuracy'] * 100, 2), 'Test_DPD': m_te_bf['Demographic_Parity_Diff'], 'Test_DPR': m_te_bf['Demographic_Parity_Ratio'], 'Test_EOD': m_te_bf['Equalized_Odds_Diff']})
     df_res = pd.DataFrame(benchmark_records)
-    out_path = os.path.join(RESULTS_DIR, 'scaled_astar_vs_bruteforce_search.csv')
-    df_res.to_csv(out_path, index=False)
     print('\n' + '=' * 100)
     print('SCALED A* VS BRUTE-FORCE BENCHMARK SUMMARY TABLE (105 PIPELINE CONFIGURATIONS):')
     print('=' * 100)
