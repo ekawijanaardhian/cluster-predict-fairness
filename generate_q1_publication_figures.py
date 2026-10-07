@@ -5,7 +5,8 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 import seaborn as sns
 
-FIGURES_DIR = os.path.join('results', 'figures')
+RESULTS_DIR = 'results'
+FIGURES_DIR = os.path.join(RESULTS_DIR, 'figures')
 os.makedirs(FIGURES_DIR, exist_ok=True)
 
 plt.style.use('seaborn-v0_8-whitegrid' if 'seaborn-v0_8-whitegrid' in plt.style.available else 'default')
@@ -97,13 +98,25 @@ def generate_figure1_architecture():
 
 
 def generate_figure2_astar_efficiency():
-    eval_18 = [3, 18]
-    time_18 = [74.73, 125.69]
-    cost_18 = [0.4702, 0.4688]
+    csv_path = os.path.join(RESULTS_DIR, 'astar_search_efficiency_metrics.csv')
+    if not os.path.exists(csv_path):
+        raise FileNotFoundError(f"[Figure 2] Missing experimental dataset: '{csv_path}'. "
+                                f"Please run the search benchmark experiment script first.")
+    df = pd.read_csv(csv_path)
 
-    eval_105 = [3, 105]
-    time_105 = [127.97, 603.84]
-    cost_105 = [0.4510, 0.4418]
+    # Extract metrics for standard space (N=18) and scaled space (N=105)
+    std_astar = df[(df['Search_Space'] == 'Standard_Space') & (df['Search_Strategy'] == 'A_Star_Search')].iloc[0]
+    std_bf = df[(df['Search_Space'] == 'Standard_Space') & (df['Search_Strategy'] == 'Brute_Force')].iloc[0]
+    scl_astar = df[(df['Search_Space'] == 'Scaled_Space') & (df['Search_Strategy'] == 'A_Star_Search')].iloc[0]
+    scl_bf = df[(df['Search_Space'] == 'Scaled_Space') & (df['Search_Strategy'] == 'Brute_Force')].iloc[0]
+
+    eval_18 = [int(std_astar['Evaluated_Pipelines']), int(std_bf['Evaluated_Pipelines'])]
+    time_18 = [float(std_astar['Search_Time_Sec']), float(std_bf['Search_Time_Sec'])]
+    cost_18 = [float(std_astar['Goal_f_cost']), float(std_bf['Goal_f_cost'])]
+
+    eval_105 = [int(scl_astar['Evaluated_Pipelines']), int(scl_bf['Evaluated_Pipelines'])]
+    time_105 = [float(scl_astar['Search_Time_Sec']), float(scl_bf['Search_Time_Sec'])]
+    cost_105 = [float(scl_astar['Goal_f_cost']), float(scl_bf['Goal_f_cost'])]
 
     fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(14.8, 4.8), dpi=300)
     x = np.arange(2)
@@ -155,18 +168,11 @@ def generate_figure2_astar_efficiency():
 
 
 def generate_figure3_cluster_optimization():
-    csv_path = os.path.join('results', 'cluster_selection_metrics.csv')
-    df = pd.DataFrame({
-        'Method': ['kmeans'] * 9,
-        'K': [2, 3, 4, 5, 6, 7, 8, 9, 10],
-        'Davies_Bouldin': [0.9064, 0.9529, 1.1011, 1.0115, 1.1206, 1.1053, 1.1529, 1.1381, 1.1358],
-        'Calinski_Harabasz': [9777.9, 8672.4, 8531.9, 8428.1, 7845.3, 7360.4, 7002.7, 6599.6, 6432.2],
-        'Demographic_Std': [0.1530, 0.1269, 0.1301, 0.1537, 0.1480, 0.1400, 0.1465, 0.1588, 0.1521],
-        'Composite_Score': [0.9829, 1.0163, 1.1661, 1.0883, 1.1946, 1.1753, 1.2262, 1.2175, 1.2119],
-        'Selection_Status': ['SELECTED (Optimal K)'] + ['Rejected (Higher Cost)'] * 8
-    })
-    df.to_csv(csv_path, index=False)
-    print(f'[Dataset] Saved canonical cluster selection metrics matching Table 1: {csv_path}')
+    csv_path = os.path.join(RESULTS_DIR, 'cluster_selection_metrics.csv')
+    if not os.path.exists(csv_path):
+        raise FileNotFoundError(f"[Figure 3] Missing experimental dataset: '{csv_path}'. "
+                                f"Please run the cluster selection experiment script first.")
+    df = pd.read_csv(csv_path)
 
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(11.5, 4.6), dpi=300)
     ks = df['K'].values
@@ -177,7 +183,7 @@ def generate_figure3_cluster_optimization():
     # (a) Objective Minimization
     ax1.plot(ks, db_scores, marker='o', lw=2.2, color='#2563eb', label='Davies-Bouldin Index (Lower is Better)')
     ax1.plot(ks, comp_scores, marker='s', lw=2.2, color='#dc2626', linestyle='--', label='Composite Score Composite(K)')
-    ax1.scatter([2], [comp_scores[0]], s=220, color='#16a34a', zorder=6, edgecolors='black', label='Optimal Cluster (K=2)')
+    ax1.scatter([ks[0]], [comp_scores[0]], s=220, color='#16a34a', zorder=6, edgecolors='black', label=f'Optimal Cluster (K={int(ks[0])})')
     ax1.set_xlabel('Candidate Number of Sub-Populations (K)', fontweight='bold')
     ax1.set_ylabel('Clustering Separation Quality / Score', fontweight='bold')
     ax1.set_title('(a) Objective Minimization across K ∈ [2, 10]', fontweight='bold')
@@ -187,7 +193,7 @@ def generate_figure3_cluster_optimization():
 
     # (b) Calinski-Harabasz Peak
     ax2.plot(ks, ch_scores, marker='^', lw=2.2, color='#0d9488', label='Calinski-Harabasz Index (Higher is Better)')
-    ax2.scatter([2], [ch_scores[0]], s=220, color='#16a34a', zorder=6, edgecolors='black', label='Optimal Peak (K=2)')
+    ax2.scatter([ks[0]], [ch_scores[0]], s=220, color='#16a34a', zorder=6, edgecolors='black', label=f'Optimal Peak (K={int(ks[0])})')
     ax2.set_xlabel('Candidate Number of Sub-Populations (K)', fontweight='bold')
     ax2.set_ylabel('Between/Within-Cluster Variance Ratio', fontweight='bold')
     ax2.set_title('(b) Variance Ratio Criterion across K ∈ [2, 10]', fontweight='bold')
@@ -200,36 +206,41 @@ def generate_figure3_cluster_optimization():
 
 
 def generate_figure4_pareto():
+    csv_path = os.path.join(RESULTS_DIR, 'pareto_frontier_tradeoff_metrics.csv')
+    if not os.path.exists(csv_path):
+        raise FileNotFoundError(f"[Figure 4] Missing experimental dataset: '{csv_path}'. "
+                                f"Please run the benchmark mitigation baselines experiment first.")
+    df = pd.read_csv(csv_path)
+
     fig, ax = plt.subplots(figsize=(9.2, 5.8), dpi=300)
-    configs = [
-        ('Single Model (Logistic K=1)', 0.8197, 0.3063, '#94a3b8', 'o', 130),
-        ('Single Model (LightGBM K=1)', 0.8263, 0.2909, '#64748b', 's', 140),
-        ('Single Model (XGBoost K=1)', 0.8262, 0.2881, '#475569', '^', 140),
-        ('Pre-Processing (Reweighing)', 0.8162, 0.1234, '#8b5cf6', 'p', 150),
-        ('Threshold Optimizer (Post)', 0.8263, 0.0491, '#06b6d4', 'H', 150),
-        ('Hard Partitioning (HP, K=2)', 0.7022, 0.0324, '#f59e0b', 'D', 150),
-        ('Hierarchical Mixture-of-Experts (HMoE, K=2)', 0.8261, 0.2957, '#10b981', '*', 300)
-    ]
 
-    for name, auc, dpd, color, marker, size in configs:
-        ax.scatter(dpd, auc, color=color, marker=marker, s=size, label=name,
-                   edgecolors='black', linewidth=1.2, zorder=5)
+    for row in df.itertuples():
+        ax.scatter(row.Test_DPD, row.Test_AUC, color=row.Plot_Color, marker=row.Plot_Marker,
+                   s=row.Marker_Size, label=row.Model_Configuration, edgecolors='black', linewidth=1.2, zorder=5)
 
-    # Highlight HMoE
-    ax.scatter(0.2957, 0.8261, s=450, facecolors='none', edgecolors='#10b981', linewidth=2.5, zorder=6, linestyle='--')
-    ax.annotate('Hierarchical Mixture-of-Experts (HMoE, K=2)\nRestores AUC (0.8261) & Net Benefit\n(AUC Recovery +0.1238 vs HP)',
-                xy=(0.2957, 0.8261), xytext=(0.08, 0.77),
-                arrowprops=dict(arrowstyle='->', color='#10b981', lw=2.0),
-                fontsize=9.0, fontweight='bold', color='#047857',
-                bbox=dict(boxstyle='round,pad=0.3', fc='#ecfdf5', ec='#10b981', lw=1))
+    # Highlight HMoE if present in dataset
+    hmoe_rows = df[df['Model_Configuration'].str.contains('Hierarchical', case=False, na=False)]
+    if not hmoe_rows.empty:
+        hmoe = hmoe_rows.iloc[0]
+        ax.scatter(hmoe['Test_DPD'], hmoe['Test_AUC'], s=450, facecolors='none',
+                   edgecolors='#10b981', linewidth=2.5, zorder=6, linestyle='--')
+        ax.annotate(f"{hmoe['Model_Configuration']}\nRestores AUC ({hmoe['Test_AUC']:.4f}) & Net Benefit\n(AUC Recovery +0.1238 vs HP)",
+                    xy=(hmoe['Test_DPD'], hmoe['Test_AUC']), xytext=(0.08, 0.77),
+                    arrowprops=dict(arrowstyle='->', color='#10b981', lw=2.0),
+                    fontsize=9.0, fontweight='bold', color='#047857',
+                    bbox=dict(boxstyle='round,pad=0.3', fc='#ecfdf5', ec='#10b981', lw=1))
 
-    # Highlight HP
-    ax.scatter(0.0324, 0.7022, s=350, facecolors='none', edgecolors='#f59e0b', linewidth=2.0, zorder=6, linestyle=':')
-    ax.annotate('Hard Partitioning (HP, K=2)\nApparent Parity (DPD=0.0324)\nUtility collapse (AUC=0.7022)',
-                xy=(0.0324, 0.7022), xytext=(0.04, 0.665),
-                arrowprops=dict(arrowstyle='->', color='#d97706', lw=1.8),
-                fontsize=8.8, fontweight='bold', color='#b45309',
-                bbox=dict(boxstyle='round,pad=0.3', fc='#fffbeb', ec='#f59e0b', lw=1))
+    # Highlight HP if present in dataset
+    hp_rows = df[df['Model_Configuration'].str.contains('Hard Partitioning', case=False, na=False)]
+    if not hp_rows.empty:
+        hp = hp_rows.iloc[0]
+        ax.scatter(hp['Test_DPD'], hp['Test_AUC'], s=350, facecolors='none',
+                   edgecolors='#f59e0b', linewidth=2.0, zorder=6, linestyle=':')
+        ax.annotate(f"Hard Partitioning (HP, K=2)\nApparent Parity (DPD={hp['Test_DPD']:.4f})\nUtility collapse (AUC={hp['Test_AUC']:.4f})",
+                    xy=(hp['Test_DPD'], hp['Test_AUC']), xytext=(0.04, 0.665),
+                    arrowprops=dict(arrowstyle='->', color='#d97706', lw=1.8),
+                    fontsize=8.8, fontweight='bold', color='#b45309',
+                    bbox=dict(boxstyle='round,pad=0.3', fc='#fffbeb', ec='#f59e0b', lw=1))
 
     ax.set_xlabel('Demographic Parity Difference (DPD)', fontweight='bold')
     ax.set_ylabel('Discrimination (AUC)', fontweight='bold')
@@ -244,19 +255,22 @@ def generate_figure4_pareto():
 
 
 def generate_figureS1_interaction_heatmap():
-    lambdas = ['0.1', '0.5', '1.0', '2.0', '5.0', '10.0', '20.0', '50.0']
-    raw_matrix = np.array([
-        [0.8261, 72.54, 0.2957, 0.4938, 0.2058],
-        [0.8261, 72.54, 0.2957, 0.4938, 0.3243],
-        [0.8263, 73.84, 0.2896, 0.4834, 0.4702],
-        [0.8263, 73.84, 0.2896, 0.4834, 0.7560],
-        [0.8263, 73.84, 0.2896, 0.4834, 1.6135],
-        [0.8263, 73.84, 0.2896, 0.4834, 3.0427],
-        [0.8263, 73.84, 0.2896, 0.4834, 5.9005],
-        [0.8263, 73.84, 0.2896, 0.4834, 14.4750]
-    ]).T
+    csv_path = os.path.join(RESULTS_DIR, 'q1_lambda_sweep.csv')
+    if not os.path.exists(csv_path):
+        raise FileNotFoundError(f"[Figure S1] Missing experimental dataset: '{csv_path}'. "
+                                f"Please run the lambda sweep experiment first.")
+    df = pd.read_csv(csv_path)
 
+    lambdas = [str(val) for val in df['Lambda_Fairness']]
     metrics = ['AUC-ROC (Utility)', 'Accuracy (%)', 'DPD (Disparity)', 'DPR (Parity Ratio)', 'Goal Cost f(n)']
+
+    raw_matrix = np.array([
+        df['Test_AUC'].values,
+        df['Test_Accuracy'].values,
+        df['Test_DPD'].values,
+        df['Test_DPR'].values,
+        df['Goal_f_cost'].values
+    ])
     
     # Text without percentage sign in cells (since yticklabel already states 'Accuracy (%)')
     annot_text = []
@@ -296,29 +310,18 @@ def generate_figureS1_interaction_heatmap():
 
 
 def generate_figureS2_multiseed_boxplots():
-    single_lgb_auc = [0.8263, 0.8260, 0.8268, 0.8259, 0.8265]
-    v2_moe_auc     = [0.8261, 0.8258, 0.8264, 0.8257, 0.8262]
-    v1_hard_auc    = [0.7022, 0.7018, 0.7005, 0.6988, 0.7049]
+    csv_path = os.path.join(RESULTS_DIR, 'q1_multiseed_baselines_raw.csv')
+    if not os.path.exists(csv_path):
+        raise FileNotFoundError(f"[Figure S2] Missing experimental dataset: '{csv_path}'. "
+                                f"Please run the multi-seed baseline experiment first.")
+    df = pd.read_csv(csv_path)
 
-    single_lgb_dpd = [0.2909, 0.2898, 0.2921, 0.2902, 0.2915]
-    v2_moe_dpd     = [0.2957, 0.2946, 0.2968, 0.2951, 0.2962]
-    v1_hard_dpd    = [0.0324, 0.0233, 0.0088, 0.0141, 0.0002]
+    single_lgb = df[df['Architecture'] == 'Single_LightGBM'].sort_values('Seed_Index')
+    v2_moe     = df[df['Architecture'] == 'Hierarchical_MoE_K2'].sort_values('Seed_Index')
+    v1_hard    = df[df['Architecture'] == 'Hard_Partitioning_K2'].sort_values('Seed_Index')
 
-    # Save raw multi-seed per-split baseline metrics for auditability
-    raw_rows = []
-    for s_idx in range(5):
-        raw_rows.append({'Architecture': 'Single_LightGBM', 'Seed_Index': s_idx + 1, 'Test_AUC': single_lgb_auc[s_idx], 'Test_DPD': single_lgb_dpd[s_idx]})
-    for s_idx in range(5):
-        raw_rows.append({'Architecture': 'Hierarchical_MoE_K2', 'Seed_Index': s_idx + 1, 'Test_AUC': v2_moe_auc[s_idx], 'Test_DPD': v2_moe_dpd[s_idx]})
-    for s_idx in range(5):
-        raw_rows.append({'Architecture': 'Hard_Partitioning_K2', 'Seed_Index': s_idx + 1, 'Test_AUC': v1_hard_auc[s_idx], 'Test_DPD': v1_hard_dpd[s_idx]})
-    df_raw = pd.DataFrame(raw_rows)
-    raw_csv_path = os.path.join('results', 'q1_multiseed_baselines_raw.csv')
-    df_raw.to_csv(raw_csv_path, index=False)
-    print(f'[Dataset] Saved raw multi-seed baseline metrics to: {raw_csv_path}')
-
-    data_auc = [single_lgb_auc, v2_moe_auc, v1_hard_auc]
-    data_dpd = [single_lgb_dpd, v2_moe_dpd, v1_hard_dpd]
+    data_auc = [single_lgb['Test_AUC'].values, v2_moe['Test_AUC'].values, v1_hard['Test_AUC'].values]
+    data_dpd = [single_lgb['Test_DPD'].values, v2_moe['Test_DPD'].values, v1_hard['Test_DPD'].values]
 
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(11.5, 4.8), dpi=300)
     labels = ['Single LightGBM\n(Unmitigated K=1)', 'Hierarchical MoE\n(HMoE, K=2)', 'Hard Partitioning\n(HP, K=2)']
@@ -347,6 +350,7 @@ def generate_figureS2_multiseed_boxplots():
         old_path = os.path.join(FIGURES_DIR, f'Fig6_multiseed_stability_boxplots{old_ext}')
         if os.path.exists(old_path):
             os.remove(old_path)
+
 
 
 def main():
