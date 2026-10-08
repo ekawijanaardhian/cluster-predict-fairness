@@ -3,6 +3,6 @@ Single Model (Logistic K=1),Baseline,0.8197,0.3063,#94a3b8,o,130
 Single Model (LightGBM K=1),Baseline,0.8263,0.2909,#64748b,s,140
 Single Model (XGBoost K=1),Baseline,0.8262,0.2881,#475569,^,140
 Pre-Processing (Reweighing),Pre-Processing,0.8162,0.1234,#8b5cf6,p,150
-Threshold Optimizer (Post),Post-Processing,0.8263,0.0491,#06b6d4,H,150
+Threshold Optimizer (Post),Post-Processing,0.8263,0.0488,#06b6d4,H,150
 "Hard Partitioning (HP, K=2)",Hard-Clustering,0.7022,0.0324,#f59e0b,D,150
 "Hierarchical Mixture-of-Experts (HMoE, K=2)",Proposed-MoE,0.8261,0.2957,#10b981,*,300

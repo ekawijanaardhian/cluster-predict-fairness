@@ -1,0 +1,8 @@
+Ablation_Variant,Global_Residual,Soft_Assignment,Cluster_Calibration,Pre_Reweighing,Test_AUC,Test_Accuracy,Test_Balanced_Acc,Test_DPD,Test_DPR,Test_EOD,Fit_Time_Sec
+"Full Proposed (HMoE, K=2)",True,True,True,False,0.8261,72.54,75.18,0.2957,0.4938,0.2622,1.91
+Ablation: Without Soft Assignment (Hard Clusters),True,False,True,False,0.8259,71.46,75.17,0.2955,0.5066,0.2641,1.77
+Ablation: Without Global Residual (Local Only),False,True,True,False,0.7022,52.02,65.47,0.0324,0.946,0.0546,1.51
+Ablation: Without Cluster Calibration,True,True,False,False,0.7694,62.19,70.41,0.1035,0.8107,0.0829,1.69
+"Ablation: Hard Partitioning Baseline (HP, K=2)",False,False,False,False,0.7022,52.02,65.47,0.0324,0.946,0.0546,1.5
+Candidate: Parity Shift (With Reweighing),True,True,True,True,0.8178,71.39,74.57,0.1243,0.7317,0.0841,1.87
+Candidate: A*-synthesised Configuration,True,True,True,False,0.8261,72.54,75.18,0.2957,0.4938,0.2622,1.8

@@ -1,0 +1,8 @@
+Architecture,Test_AUC,Test_Accuracy,Test_Balanced_Acc,Test_DPD,Test_DPR,Test_EOD,Fit_Time_Sec
+1_Single_Model_Logistic (K=1),0.8197,70.98,74.79,0.3063,0.499,0.2768,2.09
+2_Single_Model_LightGBM (K=1),0.8263,71.94,75.19,0.2909,0.5059,0.2576,0.49
+3_Single_Model_XGBoost (K=1),0.8262,73.41,75.05,0.2881,0.4903,0.2511,0.81
+"4_Homogeneous_Cluster_Predict (K=2, LightGBM)",0.8261,72.54,75.18,0.2957,0.4938,0.2622,2.17
+"5_Homogeneous_Cluster_Predict (K=4, LightGBM)",0.8256,71.42,75.25,0.2966,0.5063,0.2657,2.6
+6_Adaptive_Heterogeneous_Cluster_Predict (Optimal K=2),0.8261,72.54,75.18,0.2957,0.4938,0.2622,1.93
+7_Full_Adaptive_AutoClustering_Heterogeneous (K=8),0.8263,73.84,75.06,0.2896,0.4834,0.2531,10.7

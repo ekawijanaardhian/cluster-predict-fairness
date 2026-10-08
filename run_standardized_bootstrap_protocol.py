@@ -152,7 +152,7 @@ def run_protocol():
     print("Fitting [4/6] PostProcessing_ThresholdOptimizer (objective='balanced_accuracy_score')...")
     post_opt = ThresholdOptimizer(estimator=m_single, constraints='equalized_odds', objective='balanced_accuracy_score', prefit=True, predict_method='predict_proba')
     post_opt.fit(X_va_p, y_va_arr, sensitive_features=s_va_arr)
-    pred_post_te = post_opt.predict(X_te_p, sensitive_features=s_te_arr)
+    pred_post_te = post_opt.predict(X_te_p, sensitive_features=s_te_arr, random_state=42)
     vectors['PostProcessing_ThresholdOptimizer'] = {'score': p_single_te, 'pred': pred_post_te, 'thresh': 0.5, 'rule': 'Group_Specific_EqualizedOdds_Threshold_Policy (BalAcc)'}
     print('Fitting [5/6] v1_Hard_Cluster (K=2)...')
     pipe_v1 = ClusterThenPredictPipeline(name='v1_Hard_Cluster', n_clusters=2, clustering_method='kmeans', classifier_type='lightgbm', use_global_residual=False, soft_assignment=False, calibrate_clusters=False, random_state=42)
